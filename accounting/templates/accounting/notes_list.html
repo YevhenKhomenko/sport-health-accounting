@@ -1,0 +1,37 @@
+<!-- templates/accounting/notes_list.html -->
+{% extends 'accounting/base.html' %}
+{% block content %}
+<h2>Список приміток</h2>
+
+{% if user.is_authenticated and user.userprofile.role in 'admin editor' %}
+<a href="{% url 'notes_add_global' %}" class="btn btn-success mb-3">Додати примітку</a>
+{% endif %}
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Медичний запис</th>
+            <th>Примітка</th>
+            <th>Дії</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for note in notes_list %}
+        <tr>
+            <td>{{ note.medical_record }}</td>
+            <td>{{ note.note }}</td>
+            <td>
+                {% if user.is_authenticated and user.userprofile.role == 'admin' %}
+                    <a href="{% url 'notes_edit' note.pk %}" class="btn btn-primary btn-sm">Редагувати</a>
+                    <a href="{% url 'notes_delete' note.pk %}" class="btn btn-danger btn-sm">Видалити</a>
+                {% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="3">Немає записів</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

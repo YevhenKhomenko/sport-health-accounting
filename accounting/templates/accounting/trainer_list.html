@@ -1,0 +1,56 @@
+{% extends "accounting/base.html" %}
+{% block content %}
+<div class="container my-4">
+  <h2>Список тренерів</h2>
+
+  <!-- Форма пошуку -->
+  <form method="get" class="mb-3">
+    <div class="row g-3">
+      <div class="col-md-4">
+        <input type="text" name="last_name" class="form-control" placeholder="Прізвище" value="{{ request.GET.last_name }}">
+      </div>
+      <div class="col-md-4">
+        <input type="text" name="first_name" class="form-control" placeholder="Ім'я" value="{{ request.GET.first_name }}">
+      </div>
+      <div class="col-md-4">
+        <button type="submit" class="btn btn-primary">Пошук</button>
+      </div>
+    </div>
+  </form>
+
+  {% if trainer_list %}
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Прізвище</th>
+        <th>Ім'я</th>
+        <th>Дата народження</th>
+        <th>Основний вид спорту</th>
+        <th>Дії</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for trainer in trainer_list %}
+      <tr>
+        <td>
+          <a href="{% url 'trainer_detail' trainer.pk %}">
+            {{ trainer.last_name }}
+          </a>
+        </td>
+        <td>{{ trainer.first_name }}</td>
+        <td>{{ trainer.date_of_birth|date:"d.m.Y" }}</td>
+        <td>{{ trainer.primary_sport }}</td>
+        <td>
+          <a href="{% url 'trainer_edit' trainer.pk %}" class="btn btn-primary btn-sm">Редагувати</a>
+          <a href="{% url 'trainer_delete' trainer.pk %}" class="btn btn-danger btn-sm">Видалити</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <p>Немає тренерів.</p>
+  {% endif %}
+</div>
+{% endblock %}
+

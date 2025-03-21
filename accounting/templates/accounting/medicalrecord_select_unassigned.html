@@ -1,0 +1,30 @@
+{% extends "accounting/base.html" %}
+{% block content %}
+<div class="container my-4">
+  <h2>Вибір існуючого медичного запису</h2>
+  {% if unassigned_records %}
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Медичний заклад</th>
+          <th>Дата створення</th>
+          <th>Дії</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for record in unassigned_records %}
+        <tr>
+          <td>{{ record.medical_facility }}</td>
+          <td>{{ record.date_created|date:"d.m.Y" }}</td>
+          <td>
+            <a href="{% url 'assign_medicalrecord' record.pk %}?sportsperson_id={{ sportsperson_id }}" class="btn btn-success btn-sm">Призначити</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>Існуючих медичних записів без спортсмена не знайдено.</p>
+  {% endif %}
+</div>
+{% endblock %}

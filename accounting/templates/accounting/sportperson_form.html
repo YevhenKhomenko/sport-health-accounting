@@ -1,0 +1,304 @@
+{% extends "accounting/base.html" %}
+{% load widget_tweaks %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2>Редагувати дані спортсмена</h2>
+  <a href="{% url 'sportsperson_detail' sportsperson.pk %}" class="btn btn-secondary">Переглянути деталі</a>
+</div>
+<hr>
+<!-- Форма редагування основних даних спортсмена -->
+  <form method="post">
+    {% csrf_token %}
+{% if form.errors %}
+  <div class="alert alert-danger">
+    <strong>Помилки форми:</strong>
+    <ul>
+      {% for field, errors in form.errors.items %}
+        {% for error in errors %}
+          <li>{{ field }}: {{ error }}</li>
+        {% endfor %}
+      {% endfor %}
+      {% for error in form.non_field_errors %}
+          <li>{{ error }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}
+
+    <div class="card mb-4">
+      <div class="card-header">
+        <h4>Основні дані</h4>
+      </div>
+      <div class="card-body">
+        <!-- Прізвище -->
+        <div class="mb-3 row">
+          <label for="{{ form.last_name.id_for_label }}" class="col-sm-3 col-form-label"><strong>Прізвище:</strong></label>
+          <div class="col-sm-9">
+            {{ form.last_name|add_class:"form-control" }}
+          </div>
+        </div>
+        <!-- Ім'я -->
+        <div class="mb-3 row">
+          <label for="{{ form.first_name.id_for_label }}" class="col-sm-3 col-form-label"><strong>Ім'я:</strong></label>
+          <div class="col-sm-9">
+            {{ form.first_name|add_class:"form-control" }}
+          </div>
+        </div>
+        <!-- По батькові -->
+        <div class="mb-3 row">
+          <label for="{{ form.patronymic.id_for_label }}" class="col-sm-3 col-form-label"><strong>По батькові:</strong></label>
+          <div class="col-sm-9">
+            {{ form.patronymic|add_class:"form-control" }}
+          </div>
+        </div>
+        <!-- Дата народження -->
+        <div class="mb-3 row">
+          <label for="{{ form.date_of_birth.id_for_label }}" class="col-sm-3 col-form-label"><strong>Дата народження:</strong></label>
+          <div class="col-sm-9">
+            {{ form.date_of_birth|add_class:"form-control" }}
+          </div>
+        </div>
+        <!-- Стать -->
+        <div class="mb-3 row">
+          <label for="{{ form.gender.id_for_label }}" class="col-sm-3 col-form-label"><strong>Стать:</strong></label>
+          <div class="col-sm-9">
+            {{ form.gender|add_class:"form-select" }}
+          </div>
+        </div>
+        <!-- Домашня адреса -->
+        <div class="mb-3 row">
+          <label for="{{ form.address.id_for_label }}" class="col-sm-3 col-form-label"><strong>Домашня адреса:</strong></label>
+          <div class="col-sm-9">
+            {{ form.address|add_class:"form-control" }}
+          </div>
+        </div>
+        <!-- Телефон -->
+        <div class="mb-3 row">
+          <label for="{{ form.phone.id_for_label }}" class="col-sm-3 col-form-label"><strong>Телефон:</strong></label>
+          <div class="col-sm-9">
+            {{ form.phone|add_class:"form-control" }}
+          </div>
+        </div>
+        <!-- Спортивний розряд -->
+        <div class="mb-3 row">
+          <label for="{{ form.sports_category.id_for_label }}" class="col-sm-3 col-form-label"><strong>Спортивний розряд:</strong></label>
+          <div class="col-sm-9">
+            {{ form.sports_category|add_class:"form-control" }}
+          </div>
+        </div>
+        <!-- Основний вид спорту -->
+        <div class="mb-3 row">
+          <label for="{{ form.primary_sport.id_for_label }}" class="col-sm-3 col-form-label"><strong>Основний вид спорту:</strong></label>
+          <div class="col-sm-9">
+            {{ form.primary_sport|add_class:"form-control" }}
+          </div>
+        </div>
+        <!-- Інші види спорту -->
+        <div class="mb-3 row">
+          <label for="{{ form.additional_sports.id_for_label }}" class="col-sm-3 col-form-label"><strong>Інші види спорту:</strong></label>
+          <div class="col-sm-9">
+            {{ form.additional_sports|add_class:"form-control" }}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mb-4 text-end">
+      <button type="submit" class="btn btn-success">Зберегти зміни</button>
+    </div>
+  </form>
+
+<!-- Блок пов'язаних даних -->
+<h3>Пов'язані дані</h3>
+
+<!-- Тренери -->
+<div class="mb-4">
+  <h4>Тренери</h4>
+  {% if trainers %}
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Прізвище</th>
+          <th>Ім'я</th>
+          <th>По батькові</th>
+          <th>Дата народження</th>
+          <th>Стать</th>
+          <th>Телефон</th>
+          <th>Основний вид спорту</th>
+          <th>Дії</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for trainer in trainers %}
+        <tr>
+          <td>{{ trainer.last_name }}</td>
+          <td>{{ trainer.first_name }}</td>
+          <td>{{ trainer.patronymic }}</td>
+          <td>{{ trainer.date_of_birth|date:"d.m.Y" }}</td>
+          <td>
+            {% if trainer.gender == "male" %}Чоловіча{% elif trainer.gender == "female" %}Жіноча{% else %}{{ trainer.gender }}{% endif %}
+          </td>
+          <td>{{ trainer.phone }}</td>
+          <td>{{ trainer.primary_sport }}</td>
+          <td>
+            <a href="{% url 'trainer_detail' trainer.pk %}" class="btn btn-info btn-sm">Переглянути</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>Тренерів немає.</p>
+  {% endif %}
+  <a href="{% url 'trainer_add' %}" class="btn btn-primary">Додати тренера</a>
+</div>
+
+<!-- Організації -->
+<div class="mb-4">
+  <h4>Організації (ДЮСШ)</h4>
+  {% if organizations %}
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Назва</th>
+          <th>Тип</th>
+          <th>Адреса</th>
+          <th>Телефон</th>
+          <th>Email</th>
+          <th>Дії</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for org in organizations %}
+        <tr>
+          <td>{{ org.organization_name }}</td>
+          <td>{{ org.type }}</td>
+          <td>{{ org.address }}</td>
+          <td>{{ org.phone }}</td>
+          <td>{{ org.email }}</td>
+          <td>
+            <a href="{% url 'organization_detail' org.pk %}" class="btn btn-info btn-sm">Переглянути</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>Організацій немає.</p>
+  {% endif %}
+  <a href="{% url 'organization_add' %}" class="btn btn-primary">Додати організацію</a>
+</div>
+
+<!-- Медичні записи -->
+<div class="mb-4">
+  <h4>Медичні записи</h4>
+  {% if medical_records %}
+    {% for record in medical_records %}
+    <div class="card mb-3">
+      <div class="card-header">
+        <strong>{{ record.medical_facility }}</strong> – {{ record.date_created|date:"d.m.Y" }}
+      </div>
+      <div class="card-body">
+        <p><strong>Стан здоров’я:</strong> {{ record.health_status }}</p>
+        <p><strong>Діагноз:</strong> {{ record.diagnosis }}</p>
+        <p><strong>Функціональний статус:</strong> {{ record.functional_status }}</p>
+        <p><strong>Група занять:</strong> {{ record.physical_activity_group }}</p>
+        <p><strong>Допуск:</strong> {{ record.admission_status }}</p>
+        <p><strong>Історія хвороб:</strong> {{ record.medical_history }}</p>
+        {% if record.medical_document %}
+          <p><a href="{{ record.medical_document.url }}" target="_blank">Переглянути документ</a></p>
+        {% endif %}
+        <a href="{% url 'medicalrecord_edit' record.pk %}" class="btn btn-info btn-sm">Редагувати</a>
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <p>Медичних записів немає.</p>
+  {% endif %}
+  <a href="{% url 'medicalrecord_add' sportsperson.pk %}?next={{ request.path }}" class="btn btn-primary">Додати медичний запис</a>
+  {% if sportsperson %}
+    <a href="{% url 'medicalrecord_select_unassigned' %}?sportsperson_id={{ sportsperson.pk }}" class="btn btn-warning">Додати існуючий медичний запис</a>
+  {% endif %}
+</div>
+
+<!-- Антропометрія -->
+<div class="mb-4">
+  <h4>Антропометрія</h4>
+  {% if anthropometries %}
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Дата вимірювання</th>
+          <th>Вага (кг)</th>
+          <th>Зріст (см)</th>
+          <th>Грудна клітка (вдих)</th>
+          <th>Грудна клітка (видих)</th>
+          <th>Грудна клітка (пауза)</th>
+          <th>Різниця</th>
+          <th>Спірометрія</th>
+          <th>Динамометрія (права)</th>
+          <th>Динамометрія (ліва)</th>
+          <th>Дії</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for anthro in anthropometries %}
+        <tr>
+          <td>{{ anthro.date_of_measurement|date:"d.m.Y" }}</td>
+          <td>{{ anthro.weight }}</td>
+          <td>{{ anthro.height }}</td>
+          <td>{{ anthro.chest_circumference_inhale }}</td>
+          <td>{{ anthro.chest_circumference_exhale }}</td>
+          <td>{{ anthro.chest_circumference_pause }}</td>
+          <td>{{ anthro.chest_circumference_difference }}</td>
+          <td>{{ anthro.spirometry }}</td>
+          <td>{{ anthro.dynamometry_right }}</td>
+          <td>{{ anthro.dynamometry_left }}</td>
+          <td>
+            <a href="{% url 'anthropometry_edit' anthro.pk %}" class="btn btn-info btn-sm">Редагувати</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>Антропометричних даних немає.</p>
+  {% endif %}
+  <a href="{% url 'anthropometry_add' %}" class="btn btn-primary">Додати антропометрію</a>
+</div>
+
+<!-- Нотатки -->
+<div class="mb-4">
+  <h4>Нотатки</h4>
+  {% if notes %}
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Дата</th>
+          <th>Примітка</th>
+          <th>Дії</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for note in notes %}
+        <tr>
+          <td>
+            {% if note.medical_record %}
+              {{ note.medical_record.date_created|date:"d.m.Y" }}
+            {% else %}
+              -
+            {% endif %}
+          </td>
+          <td>{{ note.note }}</td>
+          <td>
+            <a href="{% url 'notes_edit' note.pk %}" class="btn btn-info btn-sm">Редагувати</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>Нотаток немає.</p>
+  {% endif %}
+  <a href="{% url 'notes_add' sportsperson.pk %}" class="btn btn-primary">Додати нотатку</a>
+</div>
+{% endblock %}

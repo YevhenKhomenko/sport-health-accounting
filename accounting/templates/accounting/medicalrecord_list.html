@@ -1,0 +1,40 @@
+{% extends "accounting/base.html" %}
+{% block content %}
+<div class="container my-4">
+  <h2>Список медичних записів</h2>
+  {% if sportsperson %}
+    <a href="{% url 'medicalrecord_add' sportsperson.pk %}" class="btn btn-success mb-3">Додати медичний запис</a>
+  {% endif %}
+  {% if medicalrecord_list %}
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Медичний заклад</th>
+          <th>Дата створення</th>
+          <th>Стан здоров’я</th>
+          <th>Допуск</th>
+          <th>Дії</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for record in medicalrecord_list %}
+          <tr>
+            <td><a href="{% url 'medicalrecord_detail' record.pk %}">{{ record.medical_facility }}</a></td>
+            <td>{{ record.date_created|date:"d.m.Y" }}</td>
+            <td>{{ record.health_status }}</td>
+            <td>{{ record.admission_status }}</td>
+            <td>
+              <a href="{% url 'medicalrecord_detail' record.pk %}" class="btn btn-info btn-sm">Переглянути</a>
+              <a href="{% url 'medicalrecord_edit' record.pk %}" class="btn btn-primary btn-sm">Редагувати</a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>Медичних записів немає.</p>
+  {% endif %}
+</div>
+{% endblock %}
+
+

@@ -1,0 +1,39 @@
+<!-- templates/accounting/additionaltests_list.html -->
+{% extends 'accounting/base.html' %}
+{% block content %}
+<h2>Список додаткових тестів</h2>
+
+{% if user.is_authenticated and user.userprofile.role in 'admin editor' %}
+<a href="{% url 'additionaltests_add_global' %}" class="btn btn-success mb-3">Додати тест</a>
+{% endif %}
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Медичний запис</th>
+            <th>ЕКГ</th>
+            <th>Проба Руф’є</th>
+            <th>Дії</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for test in additionaltests_list %}
+        <tr>
+            <td>{{ test.medical_record }}</td>
+            <td>{{ test.ecg }}</td>
+            <td>{{ test.rufier_index }}</td>
+            <td>
+                {% if user.is_authenticated and user.userprofile.role == 'admin' %}
+                    <a href="{% url 'additionaltests_edit' test.pk %}" class="btn btn-primary btn-sm">Редагувати</a>
+                    <a href="{% url 'additionaltests_delete' test.pk %}" class="btn btn-danger btn-sm">Видалити</a>
+                {% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4">Немає записів</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

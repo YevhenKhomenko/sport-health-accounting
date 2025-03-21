@@ -1,0 +1,15 @@
+<!-- templates/accounting/notes_form.html -->
+{% extends 'accounting/base.html' %}
+{% block content %}
+<h2>{% if object %}Редагувати примітку{% else %}Додати примітку{% endif %}</h2>
+
+{% if user.is_authenticated and user.userprofile.role in 'admin editor' %}
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-success">Зберегти</button>
+</form>
+{% else %}
+<p>У вас немає прав для створення/редагування приміток.</p>
+{% endif %}
+{% endblock %}

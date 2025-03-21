@@ -1,0 +1,15 @@
+{% extends 'accounting/base.html' %}
+{% block content %}
+<h2>Деталі примітки</h2>
+<div class="card mb-3">
+  <div class="card-header">
+    <h3>Медичний запис: {{ note.medical_record }}</h3>
+  </div>
+  <div class="card-body">
+    <p><strong>Примітка:</strong> {{ note.note }}</p>
+    {% if note.note_file %}
+      <p><a href="{{ note.note_file.url }}" target="_blank">Переглянути файл примітки</a></p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

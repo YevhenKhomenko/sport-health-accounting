@@ -1,0 +1,21 @@
+{% extends 'accounting/base.html' %}
+{% block content %}
+<h2>Деталі антропометричних даних</h2>
+<div class="card mb-3">
+  <div class="card-header">
+    <h3>Медичний запис: {{ anthropometry.medical_record }}</h3>
+  </div>
+  <div class="card-body">
+    <p><strong>Дата вимірювання:</strong> {{ anthropometry.date_of_measurement|date:"d.m.Y" }}</p>
+    <p><strong>Вага (кг):</strong> {{ anthropometry.weight }}</p>
+    <p><strong>Зріст (см):</strong> {{ anthropometry.height }}</p>
+    <p><strong>Об’єм грудної клітки (вдих):</strong> {{ anthropometry.chest_circumference_inhale }}</p>
+    <p><strong>Об’єм грудної клітки (видих):</strong> {{ anthropometry.chest_circumference_exhale }}</p>
+    <p><strong>Об’єм грудної клітки (пауза):</strong> {{ anthropometry.chest_circumference_pause }}</p>
+    <p><strong>Різниця об’ємів:</strong> {{ anthropometry.chest_circumference_difference }}</p>
+    <p><strong>Спірометрія:</strong> {{ anthropometry.spirometry }}</p>
+    <p><strong>Динамометрія (права рука):</strong> {{ anthropometry.dynamometry_right }}</p>
+    <p><strong>Динамометрія (ліва рука):</strong> {{ anthropometry.dynamometry_left }}</p>
+  </div>
+</div>
+{% endblock %}

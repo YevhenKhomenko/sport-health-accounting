@@ -1,0 +1,22 @@
+{% extends "accounting/base.html" %}
+{% block content %}
+<div class="container my-4">
+  <h2>Вхід</h2>
+  <form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label for="username" class="form-label">Логін</label>
+      <input type="text" name="username" id="username" class="form-control">
+    </div>
+    <div class="mb-3">
+      <label for="password" class="form-label">Пароль</label>
+      <input type="password" name="password" id="password" class="form-control">
+    </div>
+    <button type="submit" class="btn btn-primary">Увійти</button>
+  </form>
+  <p class="mt-3">
+    Ще немаєте облікового запису?
+    <a href="{% url 'register' %}" class="btn btn-link">Зареєструватися</a>
+  </p>
+</div>
+{% endblock %}

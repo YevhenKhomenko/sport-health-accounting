@@ -1,0 +1,110 @@
+{% extends "accounting/base.html" %}
+{% load widget_tweaks %}
+{% block content %}
+<div class="container my-4">
+  <h2>Додати спортсмена</h2>
+  <hr>
+  <!-- Відображення помилок форми -->
+  {% if form.errors %}
+    <div class="alert alert-danger">
+      <ul>
+        {% for field, errors in form.errors.items %}
+          {% for error in errors %}
+            <li>{{ field }}: {{ error }}</li>
+          {% endfor %}
+        {% endfor %}
+        {% for error in form.non_field_errors %}
+          <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+  <!-- Форма створення спортсмена -->
+  <form method="post">
+    {% csrf_token %}
+    <div class="card mb-4">
+      <div class="card-header">
+        <h4>Основні дані спортсмена</h4>
+      </div>
+      <div class="card-body">
+        <!-- Прізвище -->
+        <div class="mb-3 row">
+          <label for="{{ form.last_name.id_for_label }}" class="col-sm-3 col-form-label"><strong>Прізвище:</strong></label>
+          <div class="col-sm-9">
+            {{ form.last_name|add_class:"form-control" }}
+          </div>
+        </div>
+        <!-- Ім'я -->
+        <div class="mb-3 row">
+          <label for="{{ form.first_name.id_for_label }}" class="col-sm-3 col-form-label"><strong>Ім'я:</strong></label>
+          <div class="col-sm-9">
+            {{ form.first_name|add_class:"form-control" }}
+          </div>
+        </div>
+        <!-- По батькові -->
+        <div class="mb-3 row">
+          <label for="{{ form.patronymic.id_for_label }}" class="col-sm-3 col-form-label"><strong>По батькові:</strong></label>
+          <div class="col-sm-9">
+            {{ form.patronymic|add_class:"form-control" }}
+          </div>
+        </div>
+        <!-- Дата народження -->
+        <div class="mb-3 row">
+          <label for="{{ form.date_of_birth.id_for_label }}" class="col-sm-3 col-form-label"><strong>Дата народження:</strong></label>
+          <div class="col-sm-9">
+            {{ form.date_of_birth|add_class:"form-control" }}
+          </div>
+        </div>
+        <!-- Стать -->
+        <div class="mb-3 row">
+          <label for="{{ form.gender.id_for_label }}" class="col-sm-3 col-form-label"><strong>Стать:</strong></label>
+          <div class="col-sm-9">
+            {{ form.gender|add_class:"form-select" }}
+          </div>
+        </div>
+        <!-- Домашня адреса -->
+        <div class="mb-3 row">
+          <label for="{{ form.address.id_for_label }}" class="col-sm-3 col-form-label"><strong>Домашня адреса:</strong></label>
+          <div class="col-sm-9">
+            {{ form.address|add_class:"form-control" }}
+          </div>
+        </div>
+        <!-- Телефон -->
+        <div class="mb-3 row">
+          <label for="{{ form.phone.id_for_label }}" class="col-sm-3 col-form-label"><strong>Телефон:</strong></label>
+          <div class="col-sm-9">
+            {{ form.phone|add_class:"form-control" }}
+          </div>
+        </div>
+        <!-- Спортивний розряд -->
+        <div class="mb-3 row">
+          <label for="{{ form.sports_category.id_for_label }}" class="col-sm-3 col-form-label"><strong>Спортивний розряд:</strong></label>
+          <div class="col-sm-9">
+            {{ form.sports_category|add_class:"form-control" }}
+          </div>
+        </div>
+        <!-- Основний вид спорту -->
+        <div class="mb-3 row">
+          <label for="{{ form.primary_sport.id_for_label }}" class="col-sm-3 col-form-label"><strong>Основний вид спорту:</strong></label>
+          <div class="col-sm-9">
+            {{ form.primary_sport|add_class:"form-control" }}
+          </div>
+        </div>
+        <!-- Інші види спорту -->
+        <div class="mb-3 row">
+          <label for="{{ form.additional_sports.id_for_label }}" class="col-sm-3 col-form-label"><strong>Інші види спорту:</strong></label>
+          <div class="col-sm-9">
+            {{ form.additional_sports|add_class:"form-control" }}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="text-end">
+      <button type="submit" class="btn btn-success">Створити спортсмена</button>
+    </div>
+  </form>
+  <div class="mt-4">
+    <a href="{% url 'sportsperson_list' %}" class="btn btn-info">Перейти до списку спортсменів</a>
+  </div>
+</div>
+{% endblock %}

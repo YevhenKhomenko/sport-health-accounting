@@ -1,0 +1,15 @@
+<!-- templates/accounting/anthropometry_form.html -->
+{% extends 'accounting/base.html' %}
+{% block content %}
+<h2>{% if object %}Редагувати антропометричні дані{% else %}Додати антропометричні дані{% endif %}</h2>
+
+{% if user.is_authenticated and user.userprofile.role in 'admin editor' %}
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-success">Зберегти</button>
+</form>
+{% else %}
+<p>У вас немає прав для створення/редагування антропометрії.</p>
+{% endif %}
+{% endblock %}

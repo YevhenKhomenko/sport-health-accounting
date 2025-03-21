@@ -1,0 +1,55 @@
+{% extends "accounting/base.html" %}
+{% block content %}
+<div class="container my-4">
+  <h2>Список організацій</h2>
+
+  <!-- Форма пошуку -->
+  <form method="get" class="mb-3">
+    <div class="row g-3">
+      <div class="col-md-8">
+        <input type="text" name="name" class="form-control" placeholder="Назва організації" value="{{ request.GET.name }}">
+      </div>
+      <div class="col-md-4">
+        <button type="submit" class="btn btn-primary">Пошук</button>
+      </div>
+    </div>
+  </form>
+
+  {% if organization_list %}
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Назва</th>
+        <th>Тип</th>
+        <th>Адреса</th>
+        <th>Телефон</th>
+        <th>Email</th>
+        <th>Дії</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for org in organization_list %}
+      <tr>
+        <td>
+          <a href="{% url 'organization_detail' org.pk %}">
+            {{ org.organization_name }}
+          </a>
+        </td>
+        <td>{{ org.type }}</td>
+        <td>{{ org.address }}</td>
+        <td>{{ org.phone }}</td>
+        <td>{{ org.email }}</td>
+        <td>
+          <a href="{% url 'organization_edit' org.pk %}" class="btn btn-primary btn-sm">Редагувати</a>
+          <a href="{% url 'organization_delete' org.pk %}" class="btn btn-danger btn-sm">Видалити</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <p>Немає організацій.</p>
+  {% endif %}
+</div>
+{% endblock %}
+

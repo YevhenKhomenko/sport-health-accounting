@@ -1,0 +1,52 @@
+{% extends "accounting/base.html" %}
+{% block content %}
+<div class="container my-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Детальна інформація про тренера</h2>
+    <a href="{% url 'trainer_edit' trainer.pk %}" class="btn btn-primary">Редагувати</a>
+  </div>
+  <div class="card mb-4">
+    <div class="card-body">
+      <p><strong>Прізвище:</strong> {{ trainer.last_name }}</p>
+      <p><strong>Ім'я:</strong> {{ trainer.first_name }}</p>
+      <p><strong>По батькові:</strong> {{ trainer.patronymic }}</p>
+      <p><strong>Дата народження:</strong> {{ trainer.date_of_birth|date:"d.m.Y" }}</p>
+      <p>
+        <strong>Стать:</strong>
+        {% if trainer.gender == "male" %}Чоловіча{% elif trainer.gender == "female" %}Жіноча{% else %}{{ trainer.gender }}{% endif %}
+      </p>
+      <p><strong>Адреса:</strong> {{ trainer.address }}</p>
+      <p><strong>Телефон:</strong> {{ trainer.phone }}</p>
+      <p><strong>Основний вид спорту:</strong> {{ trainer.primary_sport }}</p>
+      <p><strong>Інші види спорту:</strong> {{ trainer.additional_sports|default:"-" }}</p>
+    </div>
+  </div>
+  <h4>Спортсмени, пов'язані з тренером</h4>
+  {% if sportspeople %}
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>ПІБ</th>
+          <th>Дата народження</th>
+          <th>Основний вид спорту</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for sp in sportspeople %}
+        <tr>
+          <td>
+            <a href="{% url 'sportsperson_detail' sp.pk %}">
+              {{ sp.last_name }} {{ sp.first_name }}{% if sp.patronymic %} {{ sp.patronymic }}{% endif %}
+            </a>
+          </td>
+          <td>{{ sp.date_of_birth|date:"d.m.Y" }}</td>
+          <td>{{ sp.primary_sport }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>Немає спортсменів, пов'язаних з цим тренером.</p>
+  {% endif %}
+</div>
+{% endblock %}

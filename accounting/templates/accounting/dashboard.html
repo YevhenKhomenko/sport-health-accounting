@@ -1,0 +1,72 @@
+<!-- templates/accounting/dashboard.html -->
+{% extends 'accounting/base.html' %}
+{% block content %}
+<h2>Панель керування</h2>
+<p>Ласкаво просимо до системи обліку спортсменів!</p>
+
+<!-- Форма пошуку карт спортсмена (ЕКС) -->
+<div class="card mb-4">
+  <div class="card-header">
+    <h4>Пошук та фільтрація спортсменів</h4>
+  </div>
+  <div class="card-body">
+    <!-- Форма відправляється на сторінку списку спортсменів -->
+    <form method="get" action="{% url 'sportsperson_list' %}">
+      <div class="row">
+        <!-- П.І.Б. -->
+        <div class="col-md-4 mb-3">
+          <label for="last_name" class="form-label">Прізвище спортсмена</label>
+          <input type="text" name="last_name" id="last_name" class="form-control" placeholder="Введіть прізвище">
+        </div>
+        <div class="col-md-4 mb-3">
+          <label for="first_name" class="form-label">Ім’я спортсмена</label>
+          <input type="text" name="first_name" id="first_name" class="form-control" placeholder="Введіть ім’я">
+        </div>
+        <div class="col-md-4 mb-3">
+          <label for="patronymic" class="form-label">По батькові спортсмена</label>
+          <input type="text" name="patronymic" id="patronymic" class="form-control" placeholder="Введіть по батькові">
+        </div>
+      </div>
+      <div class="row">
+        <!-- Рік народження -->
+        <div class="col-md-3 mb-3">
+          <label for="year_of_birth" class="form-label">Рік народження</label>
+          <input type="number" name="year_of_birth" id="year_of_birth" class="form-control" placeholder="Наприклад, 2000">
+        </div>
+        <!-- Вид спорту -->
+        <div class="col-md-3 mb-3">
+          <label for="primary_sport" class="form-label">Вид спорту</label>
+          <input type="text" name="primary_sport" id="primary_sport" class="form-control" placeholder="Введіть вид спорту">
+        </div>
+        <!-- Назва організації (ДЮСШ) -->
+        <div class="col-md-3 mb-3">
+          <label for="organization" class="form-label">Назва організації</label>
+          <input type="text" name="organization" id="organization" class="form-control" placeholder="Введіть назву організації">
+        </div>
+        <!-- Прізвище тренера -->
+        <div class="col-md-3 mb-3">
+          <label for="trainer" class="form-label">Прізвище тренера</label>
+          <input type="text" name="trainer" id="trainer" class="form-control" placeholder="Введіть прізвище тренера">
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary">Шукати</button>
+    </form>
+  </div>
+</div>
+
+<!-- Кнопки для додавання записів -->
+<div class="mb-4">
+  <a href="{% url 'sportsperson_add' %}" class="btn btn-success">Додати спортсмена</a>
+  <a href="{% url 'trainer_add' %}" class="btn btn-success">Додати тренера</a>
+  <a href="{% url 'organization_add' %}" class="btn btn-success">Додати організацію</a>
+  <a href="{% url 'medicalrecord_add_global' %}?next={{ request.path }}" class="btn btn-success">Створити медичний запис</a>
+</div>
+
+<!-- Кнопки для перегляду списків -->
+<div class="mb-4">
+  <a href="{% url 'sportsperson_list' %}" class="btn btn-info">Список спортсменів</a>
+  <a href="{% url 'trainer_list' %}" class="btn btn-info">Список тренерів</a>
+  <a href="{% url 'organization_list' %}" class="btn btn-info">Список організацій</a>
+</div>
+{% endblock %}
+
