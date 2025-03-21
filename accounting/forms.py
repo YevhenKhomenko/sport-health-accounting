@@ -32,6 +32,7 @@ class SportspersonSearchForm(forms.Form):
     )
 
 
+
 class SportspersonForm(forms.ModelForm):
     class Meta:
         model = Sportsperson
@@ -47,7 +48,64 @@ class SportspersonForm(forms.ModelForm):
                 ('female', 'Жіноча'),
             )),
         }
+"""
 
+class SportspersonForm(forms.ModelForm):
+    # Додаємо поля для тренерів і організацій як ModelMultipleChoiceField
+    trainers = forms.ModelMultipleChoiceField(
+        queryset=Trainer.objects.all(),
+        required=False,
+        widget=forms.SelectMultiple(attrs={'class': 'form-control'})
+    )
+    organizations = forms.ModelMultipleChoiceField(
+        queryset=Organization.objects.all(),
+        required=False,
+        widget=forms.SelectMultiple(attrs={'class': 'form-control'})
+    )
+
+    class Meta:
+        model = Sportsperson
+        fields = [
+            'last_name', 'first_name', 'patronymic', 'date_of_birth',
+            'gender', 'address', 'phone', 'sports_category',
+            'primary_sport', 'additional_sports', 'trainers', 'organizations'
+        ]
+        widgets = {
+            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'patronymic': forms.TextInput(attrs={'class': 'form-control'}),
+            'date_of_birth': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'gender': forms.Select(attrs={'class': 'form-select'}),
+            'address': forms.TextInput(attrs={'class': 'form-control'}),
+            'phone': forms.TextInput(attrs={'class': 'form-control'}),
+            'sports_category': forms.TextInput(attrs={'class': 'form-control'}),
+            'primary_sport': forms.TextInput(attrs={'class': 'form-control'}),
+            'additional_sports': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Якщо редагуємо існуючий об'єкт, заповнюємо початкові значення для тренерів та організацій:
+        if self.instance and self.instance.pk:
+            self.fields['trainers'].initial = self.instance.trainers.all()
+            self.fields['organizations'].initial = self.instance.organizations.all()
+
+    def save(self, commit=True):
+        # Зберігаємо основні дані спортсмена
+        sportsperson = super().save(commit=False)
+        if commit:
+            sportsperson.save()
+            # Оновлюємо зв'язки ManyToMany для тренерів та організацій
+            sportsperson.trainers.set(self.cleaned_data['trainers'])
+            sportsperson.organizations.set(self.cleaned_data['organizations'])
+        else:
+            # Якщо commit=False, збереження m2m здійснюється окремо
+            def save_m2m():
+                sportsperson.trainers.set(self.cleaned_data['trainers'])
+                sportsperson.organizations.set(self.cleaned_data['organizations'])
+            self.save_m2m = save_m2m
+        return sportsperson
+"""
 
 class TrainerForm(forms.ModelForm):
     class Meta:

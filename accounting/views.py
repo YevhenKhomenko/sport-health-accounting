@@ -187,7 +187,10 @@ class SportspersonUpdateView(UpdateView):
     model = Sportsperson
     form_class = SportspersonForm
     template_name = 'accounting/sportperson_form.html'
-    success_url = reverse_lazy('sportsperson_list')
+
+    def get_success_url(self):
+        # Повертаємо URL для деталей спортсмена за допомогою його pk
+        return reverse_lazy('sportsperson_detail', kwargs={'pk': self.object.pk})
 
     def form_valid(self, form):
         print("Form is valid. Cleaned data:", form.cleaned_data)
