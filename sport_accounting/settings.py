@@ -60,9 +60,7 @@ WSGI_APPLICATION = 'sport_accounting.wsgi.application'
 
 # Налаштування бази даних через dj_database_url. Heroku автоматично встановлює DATABASE_URL
 DATABASES = {
-    'default': dj_database_url.config(
-        default=config('DATABASE_URL', default=f"postgres://{config('DB_USER')}:{config('DB_PASSWORD')}@{config('DB_HOST')}:{config('DB_PORT')}/{config('DB_NAME')}")
-    )
+    'default': dj_database_url.config(default=config('DATABASE_URL'))
 }
 
 AUTH_PASSWORD_VALIDATORS = [
