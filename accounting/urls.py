@@ -8,6 +8,8 @@ from accounting.views import MedicalRecordCreateGlobalView, medicalrecord_select
 
 urlpatterns = [
 
+    # path('select2/', include('django_select2.urls')),
+
     # Авторизація
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),

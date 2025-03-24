@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from django_select2.forms import ModelSelect2Widget
+from django_select2.forms import ModelSelect2Widget, ModelSelect2MultipleWidget
 from .models import Sportsperson, Organization, Trainer, MedicalRecord, AdditionalTests, Anthropometry
 
 
@@ -15,16 +15,8 @@ class SportspersonSearchForm(forms.Form):
         widget=forms.DateInput(attrs={'type': 'date'})
     )
     primary_sport = forms.CharField(label="Вид спорту", required=False)
-    organization = forms.ModelChoiceField(
-        label="Організація",
-        queryset=Organization.objects.all(),
-        required=False
-    )
-    trainer = forms.ModelChoiceField(
-        label="Тренер",
-        queryset=Trainer.objects.all(),
-        required=False
-    )
+    organization = forms.CharField(label="Організація", required=False)
+    trainer = forms.CharField(label="Тренер", required=False)
     gender = forms.ChoiceField(
         label="Стать спортсмена",
         choices=[('', '---------'), ('male', 'Чоловіча'), ('female', 'Жіноча')],
@@ -32,50 +24,43 @@ class SportspersonSearchForm(forms.Form):
     )
 
 
-
 class SportspersonForm(forms.ModelForm):
-    class Meta:
-        model = Sportsperson
-        exclude = ['trainers', 'organizations', 'medical_records', 'anthropometries', 'notes']
-        auto_id = 'id_%s'
-        widgets = {
-            'date_of_birth': forms.DateInput(
-                format='%Y-%m-%d',
-                attrs={'type': 'date', 'class': 'form-control'}
-            ),
-            'gender': forms.Select(attrs={'class': 'form-select'}, choices=(
-                ('male', 'Чоловіча'),
-                ('female', 'Жіноча'),
-            )),
-        }
-"""
-
-class SportspersonForm(forms.ModelForm):
-    # Додаємо поля для тренерів і організацій як ModelMultipleChoiceField
     trainers = forms.ModelMultipleChoiceField(
         queryset=Trainer.objects.all(),
         required=False,
-        widget=forms.SelectMultiple(attrs={'class': 'form-control'})
+        widget=ModelSelect2MultipleWidget(
+            model=Trainer,
+            search_fields=['last_name__icontains', 'first_name__icontains'],
+            attrs={'data-placeholder': 'Введіть ім’я або прізвище тренера...'}
+        )
     )
     organizations = forms.ModelMultipleChoiceField(
         queryset=Organization.objects.all(),
         required=False,
-        widget=forms.SelectMultiple(attrs={'class': 'form-control'})
+        widget=ModelSelect2MultipleWidget(
+            model=Organization,
+            search_fields=['organization_name__icontains'],
+            attrs={'data-placeholder': 'Введіть назву організації...'}
+        )
     )
 
     class Meta:
         model = Sportsperson
         fields = [
-            'last_name', 'first_name', 'patronymic', 'date_of_birth',
-            'gender', 'address', 'phone', 'sports_category',
-            'primary_sport', 'additional_sports', 'trainers', 'organizations'
+            'last_name', 'first_name', 'patronymic',
+            'date_of_birth', 'gender', 'address', 'phone',
+            'sports_category', 'primary_sport', 'additional_sports',
+            'trainers', 'organizations'
         ]
         widgets = {
             'last_name': forms.TextInput(attrs={'class': 'form-control'}),
             'first_name': forms.TextInput(attrs={'class': 'form-control'}),
             'patronymic': forms.TextInput(attrs={'class': 'form-control'}),
-            'date_of_birth': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-            'gender': forms.Select(attrs={'class': 'form-select'}),
+            'date_of_birth': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}, format='%Y-%m-%d'),
+            'gender': forms.Select(attrs={'class': 'form-select'}, choices=(
+                ('male', 'Чоловіча'),
+                ('female', 'Жіноча'),
+            )),
             'address': forms.TextInput(attrs={'class': 'form-control'}),
             'phone': forms.TextInput(attrs={'class': 'form-control'}),
             'sports_category': forms.TextInput(attrs={'class': 'form-control'}),
@@ -85,27 +70,23 @@ class SportspersonForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Якщо редагуємо існуючий об'єкт, заповнюємо початкові значення для тренерів та організацій:
         if self.instance and self.instance.pk:
             self.fields['trainers'].initial = self.instance.trainers.all()
             self.fields['organizations'].initial = self.instance.organizations.all()
 
     def save(self, commit=True):
-        # Зберігаємо основні дані спортсмена
         sportsperson = super().save(commit=False)
         if commit:
             sportsperson.save()
-            # Оновлюємо зв'язки ManyToMany для тренерів та організацій
             sportsperson.trainers.set(self.cleaned_data['trainers'])
             sportsperson.organizations.set(self.cleaned_data['organizations'])
         else:
-            # Якщо commit=False, збереження m2m здійснюється окремо
-            def save_m2m():
-                sportsperson.trainers.set(self.cleaned_data['trainers'])
+            self.save_m2m = lambda: (
+                sportsperson.trainers.set(self.cleaned_data['trainers']),
                 sportsperson.organizations.set(self.cleaned_data['organizations'])
-            self.save_m2m = save_m2m
+            )
         return sportsperson
-"""
+
 
 class TrainerForm(forms.ModelForm):
     class Meta:

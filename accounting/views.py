@@ -128,7 +128,6 @@ def sportsperson_detail(request, pk):
     return render(request, 'accounting/sportperson_detail.html', context)
 
 
-
 @login_required
 def organization_detail(request, pk):
     organization = get_object_or_404(Organization, pk=pk)
@@ -177,9 +176,12 @@ def anthropometry_detail(request, pk):
 @method_decorator(role_required(['admin', 'editor']), name='dispatch')
 class SportspersonCreateView(CreateView):
     model = Sportsperson
-    fields = '__all__'
+    form_class = SportspersonForm
     template_name = 'accounting/sportperson_create.html'
-    success_url = reverse_lazy('sportsperson_list')
+
+    def get_success_url(self):
+        # Після успішного створення повертаємо URL для сторінки деталей спортсмена
+        return reverse_lazy('sportsperson_detail', kwargs={'pk': self.object.pk})
 
 
 @method_decorator(role_required(['admin']), name='dispatch')
