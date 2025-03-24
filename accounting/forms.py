@@ -28,19 +28,15 @@ class SportspersonForm(forms.ModelForm):
     trainers = forms.ModelMultipleChoiceField(
         queryset=Trainer.objects.all(),
         required=False,
-        widget=ModelSelect2MultipleWidget(
-            model=Trainer,
-            search_fields=['last_name__icontains', 'first_name__icontains'],
-            attrs={'data-placeholder': 'Введіть ім’я або прізвище тренера...'}
+        widget=forms.SelectMultiple(
+            attrs={'class': 'select2', 'data-placeholder': 'Enter trainer name or surname...'}
         )
     )
     organizations = forms.ModelMultipleChoiceField(
         queryset=Organization.objects.all(),
         required=False,
-        widget=ModelSelect2MultipleWidget(
-            model=Organization,
-            search_fields=['organization_name__icontains'],
-            attrs={'data-placeholder': 'Введіть назву організації...'}
+        widget=forms.SelectMultiple(
+            attrs={'class': 'select2', 'data-placeholder': 'Enter organization name...'}
         )
     )
 
