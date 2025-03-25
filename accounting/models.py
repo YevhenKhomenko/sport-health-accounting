@@ -87,8 +87,13 @@ class SportspersonOrganization(models.Model):
 
 
 class MedicalRecord(models.Model):
-    sportsperson = models.ForeignKey(Sportsperson, on_delete=models.CASCADE, related_name='medical_records')
-    # Видаляємо поле organization, тому що воно більше не потрібне
+    sportsperson = models.ForeignKey(
+        Sportsperson,
+        on_delete=models.CASCADE,
+        related_name='medical_records',
+        null=True,  # Keep null=True for now
+        blank=True  # Add blank=True to allow empty values in forms
+    )
     date_created = models.DateField("Дата створення карти")
     medical_facility = models.CharField("Медичний заклад", max_length=255)
     health_status = models.CharField("Стан здоров’я", max_length=100)
