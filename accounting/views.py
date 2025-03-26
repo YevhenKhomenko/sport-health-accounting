@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.urls import reverse_lazy
+from django.views import View
 from django.views.generic import CreateView, UpdateView, DeleteView, ListView
 from django.utils.decorators import method_decorator
 from .models import (
@@ -9,10 +10,8 @@ from .models import (
     Anthropometry, AdditionalTests, Notes, UserProfile
 )
 from .forms import SportspersonSearchForm, SportspersonForm, TrainerForm, OrganizationForm, AnthropometryForm, \
-    AdditionalTestsForm, MedicalRecordForm, RegistrationForm
+    AdditionalTestsForm, MedicalRecordForm, RegistrationForm, NotesForm
 from .permissions import role_required
-
-# TODO: add register view(login pass, then admin approve)
 
 
 class NextUrlMixin:
@@ -113,10 +112,14 @@ def sportsperson_detail(request, pk):
     trainers = sportsperson.trainers.all()
     organizations = sportsperson.organizations.all()
     medical_records = sportsperson.medical_records.all().order_by('-date_created')
-    # Для антропометрії та нотаток – через медичні записи
-    from accounting.models import Anthropometry, Notes
+    # Для антропометрії, нотаток та додаткових тестів – через медичні записи
+    from accounting.models import Anthropometry, Notes, Trainer, Organization, AdditionalTests
     anthropometries = Anthropometry.objects.filter(medical_record__sportsperson=sportsperson).order_by('-date_of_measurement')
     notes = Notes.objects.filter(medical_record__sportsperson=sportsperson).order_by('-id')
+    additional_tests = AdditionalTests.objects.filter(medical_record__sportsperson=sportsperson)
+    # Отримуємо всіх тренерів та організації для форм додавання
+    all_trainers = Trainer.objects.all()
+    all_organizations = Organization.objects.all()
     context = {
         'sportsperson': sportsperson,
         'trainers': trainers,
@@ -124,6 +127,9 @@ def sportsperson_detail(request, pk):
         'medical_records': medical_records,
         'anthropometries': anthropometries,
         'notes': notes,
+        'additional_tests': additional_tests,
+        'all_trainers': all_trainers,
+        'all_organizations': all_organizations,
     }
     return render(request, 'accounting/sportperson_detail.html', context)
 
@@ -147,7 +153,16 @@ def trainer_detail(request, pk):
 @login_required
 def medicalrecord_detail(request, pk):
     medicalrecord = get_object_or_404(MedicalRecord, pk=pk)
-    context = {'medicalrecord': medicalrecord}
+    # Fetch related objects
+    anthropometries = medicalrecord.anthropometries.all().order_by('-date_of_measurement')
+    additional_tests = medicalrecord.additional_tests.all()
+    notes = medicalrecord.notes.all().order_by('-id')
+    context = {
+        'medicalrecord': medicalrecord,
+        'anthropometries': anthropometries,
+        'additional_tests': additional_tests,
+        'notes': notes,
+    }
     return render(request, 'accounting/medicalrecord_detail.html', context)
 
 
@@ -214,11 +229,53 @@ class SportspersonUpdateView(UpdateView):
         return context
 
 
+@method_decorator(role_required(['admin', 'editor']), name='dispatch')
+class SportspersonAddTrainerView(View):
+    def post(self, request, sportsperson_pk):
+        sportsperson = get_object_or_404(Sportsperson, pk=sportsperson_pk)
+        trainer_pk = request.POST.get('trainer')
+        trainer = get_object_or_404(Trainer, pk=trainer_pk)
+        sportsperson.trainers.add(trainer)
+        messages.success(request, f"Тренера {trainer} успішно додано до спортсмена {sportsperson}.")
+        return redirect('sportsperson_detail', pk=sportsperson.pk)
+
+
+@method_decorator(role_required(['admin', 'editor']), name='dispatch')
+class SportspersonRemoveTrainerView(View):
+    def post(self, request, sportsperson_pk, trainer_pk):
+        sportsperson = get_object_or_404(Sportsperson, pk=sportsperson_pk)
+        trainer = get_object_or_404(Trainer, pk=trainer_pk)
+        sportsperson.trainers.remove(trainer)
+        messages.success(request, f"Тренера {trainer} успішно видалено зі списку спортсмена {sportsperson}.")
+        return redirect('sportsperson_detail', pk=sportsperson.pk)
+
+
+@method_decorator(role_required(['admin', 'editor']), name='dispatch')
+class SportspersonAddOrganizationView(View):
+    def post(self, request, sportsperson_pk):
+        sportsperson = get_object_or_404(Sportsperson, pk=sportsperson_pk)
+        organization_pk = request.POST.get('organization')
+        organization = get_object_or_404(Organization, pk=organization_pk)
+        sportsperson.organizations.add(organization)
+        messages.success(request, f"Організацію {organization} успішно додано до спортсмена {sportsperson}.")
+        return redirect('sportsperson_detail', pk=sportsperson.pk)
+
+
+@method_decorator(role_required(['admin', 'editor']), name='dispatch')
+class SportspersonRemoveOrganizationView(View):
+    def post(self, request, sportsperson_pk, organization_pk):
+        sportsperson = get_object_or_404(Sportsperson, pk=sportsperson_pk)
+        organization = get_object_or_404(Organization, pk=organization_pk)
+        sportsperson.organizations.remove(organization)
+        messages.success(request, f"Організацію {organization} успішно видалено зі списку спортсмена {sportsperson}.")
+        return redirect('sportsperson_detail', pk=sportsperson.pk)
+
+
 @method_decorator(role_required(['admin']), name='dispatch')
 class SportspersonDeleteView(DeleteView):
     model = Sportsperson
     template_name = 'accounting/sportperson_confirm_delete.html'
-    success_url = reverse_lazy('sportsperson_list')
+    success_url = reverse_lazy('dashboard')
 
 
 # --- CRUD для Trainer ---
@@ -241,9 +298,12 @@ class TrainerListView(ListView):
 @method_decorator(role_required(['admin', 'editor']), name='dispatch')
 class TrainerCreateView(CreateView):
     model = Trainer
-    fields = '__all__'
+    form_class = TrainerForm
     template_name = 'accounting/trainer_create.html'
-    success_url = reverse_lazy('trainer_list')
+
+    def get_success_url(self):
+        # Redirect to the created trainer's detail page
+        return reverse_lazy('trainer_detail', kwargs={'pk': self.object.pk})
 
 
 @method_decorator(role_required(['admin']), name='dispatch')
@@ -259,12 +319,15 @@ class TrainerUpdateView(UpdateView):
         context['sportspersons'] = Sportsperson.objects.filter(trainers=self.object)
         return context
 
+    def get_success_url(self):
+        return reverse_lazy('trainer_detail', kwargs={'pk': self.object.pk})
+
 
 @method_decorator(role_required(['admin']), name='dispatch')
 class TrainerDeleteView(DeleteView):
     model = Trainer
     template_name = 'accounting/trainer_confirm_delete.html'
-    success_url = reverse_lazy('trainer_list')
+    success_url = reverse_lazy('dashboard')
 
 
 # --- CRUD для Organization ---
@@ -286,7 +349,9 @@ class OrganizationCreateView(CreateView):
     model = Organization
     fields = '__all__'
     template_name = 'accounting/organization_create.html'
-    success_url = reverse_lazy('organization_list')
+
+    def get_success_url(self):
+        return reverse_lazy('organization_detail', kwargs={'pk': self.object.pk})
 
 
 @method_decorator(role_required(['admin']), name='dispatch')
@@ -294,7 +359,9 @@ class OrganizationUpdateView(UpdateView):
     model = Organization
     form_class = OrganizationForm
     template_name = 'accounting/organization_form.html'
-    success_url = reverse_lazy('organization_list')
+
+    def get_success_url(self):
+        return reverse_lazy('organization_detail', kwargs={'pk': self.object.pk})
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -309,7 +376,7 @@ class OrganizationUpdateView(UpdateView):
 class OrganizationDeleteView(DeleteView):
     model = Organization
     template_name = 'accounting/organization_confirm_delete.html'
-    success_url = reverse_lazy('organization_list')
+    success_url = reverse_lazy('dashboard')
 
 
 # --- CRUD для MedicalRecord ---
@@ -320,11 +387,13 @@ class MedicalRecordListView(ListView):
 
 
 @method_decorator(role_required(['admin', 'editor']), name='dispatch')
-class MedicalRecordCreateGlobalView(NextUrlMixin, CreateView):
+class MedicalRecordCreateGlobalView(CreateView):
     model = MedicalRecord
     form_class = MedicalRecordForm
     template_name = 'accounting/medicalrecord_create.html'
-    success_url = reverse_lazy('medicalrecord_list')
+
+    def get_success_url(self):
+        return reverse_lazy('medicalrecord_detail', kwargs={'pk': self.object.pk})
 
 
 @method_decorator(role_required(['admin', 'editor']), name='dispatch')
@@ -332,7 +401,9 @@ class MedicalRecordCreateView(NextUrlMixin, CreateView):
     model = MedicalRecord
     form_class = MedicalRecordForm
     template_name = 'accounting/medicalrecord_create.html'
-    success_url = reverse_lazy('sportsperson_list')
+
+    def get_success_url(self):
+        return reverse_lazy('medicalrecord_detail', kwargs={'pk': self.object.pk})
 
     def get_initial(self):
         initial = super().get_initial()
@@ -347,14 +418,16 @@ class MedicalRecordUpdateView(UpdateView):
     model = MedicalRecord
     form_class = MedicalRecordForm
     template_name = 'accounting/medicalrecord_form.html'
-    success_url = reverse_lazy('sportsperson_list')
+
+    def get_success_url(self):
+        return reverse_lazy('medicalrecord_detail', kwargs={'pk': self.object.pk})
 
 
 @method_decorator(role_required(['admin']), name='dispatch')
 class MedicalRecordDeleteView(DeleteView):
     model = MedicalRecord
     template_name = 'accounting/medicalrecord_confirm_delete.html'
-    success_url = reverse_lazy('sportsperson_list')
+    success_url = reverse_lazy('dashboard')
 
 @login_required
 def medicalrecord_select_unassigned(request):
@@ -387,11 +460,53 @@ class AnthropometryListView(ListView):
 
 
 @method_decorator(role_required(['admin', 'editor']), name='dispatch')
-class AnthropometryCreateView(CreateView):
+class AnthropometryCreateView(NextUrlMixin, CreateView):
     model = Anthropometry
-    fields = '__all__'
+    form_class = AnthropometryForm
     template_name = 'accounting/anthropometry_create.html'
-    success_url = reverse_lazy('anthropometry_list')
+
+    def get_initial(self):
+        initial = super().get_initial()
+        sportsperson_id = self.kwargs.get('sportsperson_id') or self.request.GET.get('sportsperson_id')
+        if sportsperson_id:
+            sportsperson = get_object_or_404(Sportsperson, pk=sportsperson_id)
+            initial['sportsperson'] = sportsperson
+        record_id = self.request.GET.get('record_id') or self.kwargs.get('record_id')
+        if record_id:
+            medical_record = get_object_or_404(MedicalRecord, pk=record_id)
+            initial['medical_record'] = medical_record
+            initial['sportsperson'] = medical_record.sportsperson
+        return initial
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        sportsperson_id = self.kwargs.get('sportsperson_id') or self.request.GET.get('sportsperson_id')
+        record_id = self.request.GET.get('record_id') or self.kwargs.get('record_id')
+        if sportsperson_id:
+            sportsperson = get_object_or_404(Sportsperson, pk=sportsperson_id)
+            kwargs['sportsperson'] = sportsperson
+        if record_id:
+            medical_record = get_object_or_404(MedicalRecord, pk=record_id)
+            kwargs['medical_record'] = medical_record
+        return kwargs
+
+    def form_valid(self, form):
+        anthropometry = form.save(commit=False)
+        if form.cleaned_data['medical_record']:
+            anthropometry.sportsperson = form.cleaned_data['medical_record'].sportsperson
+        anthropometry.save()
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        # Use NextUrlMixin to handle the 'next' parameter
+        next_url = super().get_success_url()
+        if next_url:
+            if 'medicalrecord' in next_url:
+                return next_url  # Redirect to MedicalRecord detail if 'next' points there
+            elif 'sportsperson' in next_url:
+                return next_url  # Redirect to Sportsperson detail if 'next' points there
+        # Default redirect to the associated MedicalRecord detail page
+        return reverse_lazy('medicalrecord_detail', kwargs={'pk': self.object.medical_record.pk})
 
 
 @method_decorator(role_required(['admin']), name='dispatch')
@@ -399,14 +514,36 @@ class AnthropometryUpdateView(UpdateView):
     model = Anthropometry
     form_class = AnthropometryForm
     template_name = 'accounting/anthropometry_form.html'
-    success_url = reverse_lazy('anthropometry_list')
+
+    def get_success_url(self):
+        # Check for 'next' parameter
+        next_url = self.request.GET.get('next') or self.request.POST.get('next')
+        if next_url:
+            if 'medicalrecord' in next_url:
+                return next_url  # Redirect to MedicalRecord detail if 'next' points there
+            elif 'sportsperson' in next_url:
+                return next_url  # Redirect to Sportsperson detail if 'next' points there
+        # Default redirect to the associated MedicalRecord detail page
+        return reverse_lazy('medicalrecord_detail', kwargs={'pk': self.object.medical_record.pk})
 
 
 @method_decorator(role_required(['admin']), name='dispatch')
 class AnthropometryDeleteView(DeleteView):
     model = Anthropometry
     template_name = 'accounting/anthropometry_confirm_delete.html'
-    success_url = reverse_lazy('anthropometry_list')
+
+    def get_success_url(self):
+        # Store the medical_record.pk before deletion
+        medical_record_pk = self.object.medical_record.pk
+        # Check for 'next' parameter
+        next_url = self.request.GET.get('next') or self.request.POST.get('next')
+        if next_url:
+            if 'medicalrecord' in next_url:
+                return next_url  # Redirect to MedicalRecord detail if 'next' points there
+            elif 'sportsperson' in next_url:
+                return next_url  # Redirect to Sportsperson detail if 'next' points there
+        # Default redirect to the associated MedicalRecord detail page
+        return reverse_lazy('medicalrecord_detail', kwargs={'pk': medical_record_pk})
 
 
 # --- CRUD для AdditionalTests ---
@@ -417,18 +554,53 @@ class AdditionalTestsListView(ListView):
 
 
 @method_decorator(role_required(['admin', 'editor']), name='dispatch')
-class AdditionalTestsCreateView(CreateView):
+class AdditionalTestsCreateView(NextUrlMixin, CreateView):
     model = AdditionalTests
-    fields = '__all__'
+    form_class = AdditionalTestsForm
     template_name = 'accounting/additionaltests_create.html'
-    success_url = reverse_lazy('additionaltests_list')
 
     def get_initial(self):
         initial = super().get_initial()
-        record_id = self.kwargs.get('record_id')
+        sportsperson_id = self.kwargs.get('sportsperson_id') or self.request.GET.get('sportsperson_id')
+        if sportsperson_id:
+            sportsperson = get_object_or_404(Sportsperson, pk=sportsperson_id)
+            initial['sportsperson'] = sportsperson
+        record_id = self.kwargs.get('record_id') or self.request.GET.get('record_id')
         if record_id:
-            initial['medical_record'] = record_id
+            medical_record = get_object_or_404(MedicalRecord, pk=record_id)
+            initial['medical_record'] = medical_record
+            initial['sportsperson'] = medical_record.sportsperson
         return initial
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        sportsperson_id = self.kwargs.get('sportsperson_id') or self.request.GET.get('sportsperson_id')
+        record_id = self.kwargs.get('record_id') or self.request.GET.get('record_id')
+        if sportsperson_id:
+            sportsperson = get_object_or_404(Sportsperson, pk=sportsperson_id)
+            kwargs['sportsperson'] = sportsperson
+        if record_id:
+            medical_record = get_object_or_404(MedicalRecord, pk=record_id)
+            kwargs['medical_record'] = medical_record
+        return kwargs
+
+    def form_valid(self, form):
+        additional_test = form.save(commit=False)
+        if form.cleaned_data['medical_record']:
+            additional_test.sportsperson = form.cleaned_data['medical_record'].sportsperson
+        additional_test.save()
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        # Use NextUrlMixin to handle the 'next' parameter
+        next_url = super().get_success_url()
+        if next_url:
+            if 'medicalrecord' in next_url:
+                return next_url  # Redirect to MedicalRecord detail if 'next' points there
+            elif 'sportsperson' in next_url:
+                return next_url  # Redirect to Sportsperson detail if 'next' points there
+        # Default redirect to the associated MedicalRecord detail page
+        return reverse_lazy('medicalrecord_detail', kwargs={'pk': self.object.medical_record.pk})
 
 
 @method_decorator(role_required(['admin', 'editor']), name='dispatch')
@@ -436,7 +608,10 @@ class AdditionalTestsCreateGlobalView(CreateView):
     model = AdditionalTests
     fields = '__all__'
     template_name = 'accounting/additionaltests_form.html'
-    success_url = reverse_lazy('additionaltests_list')
+
+    def get_success_url(self):
+        # Redirect to the associated MedicalRecord detail page
+        return reverse_lazy('medicalrecord_detail', kwargs={'pk': self.object.medical_record.pk})
 
 
 @method_decorator(role_required(['admin']), name='dispatch')
@@ -444,14 +619,36 @@ class AdditionalTestsUpdateView(UpdateView):
     model = AdditionalTests
     form_class = AdditionalTestsForm
     template_name = 'accounting/additionaltests_form.html'
-    success_url = reverse_lazy('additionaltests_list')
+
+    def get_success_url(self):
+        # Check for 'next' parameter
+        next_url = self.request.GET.get('next') or self.request.POST.get('next')
+        if next_url:
+            if 'medicalrecord' in next_url:
+                return next_url  # Redirect to MedicalRecord detail if 'next' points there
+            elif 'sportsperson' in next_url:
+                return next_url  # Redirect to Sportsperson detail if 'next' points there
+        # Default redirect to the associated MedicalRecord detail page
+        return reverse_lazy('medicalrecord_detail', kwargs={'pk': self.object.medical_record.pk})
 
 
 @method_decorator(role_required(['admin']), name='dispatch')
 class AdditionalTestsDeleteView(DeleteView):
     model = AdditionalTests
     template_name = 'accounting/additionaltests_confirm_delete.html'
-    success_url = reverse_lazy('additionaltests_list')
+
+    def get_success_url(self):
+        # Store the medical_record.pk before deletion
+        medical_record_pk = self.object.medical_record.pk
+        # Check for 'next' parameter
+        next_url = self.request.GET.get('next') or self.request.POST.get('next')
+        if next_url:
+            if 'medicalrecord' in next_url:
+                return next_url  # Redirect to MedicalRecord detail if 'next' points there
+            elif 'sportsperson' in next_url:
+                return next_url  # Redirect to Sportsperson detail if 'next' points there
+        # Default redirect to the associated MedicalRecord detail page
+        return reverse_lazy('medicalrecord_detail', kwargs={'pk': medical_record_pk})
 
 
 # --- CRUD для Notes ---
@@ -462,38 +659,97 @@ class NotesListView(ListView):
 
 
 @method_decorator(role_required(['admin', 'editor']), name='dispatch')
-class NotesCreateView(CreateView):
+class NotesCreateView(NextUrlMixin, CreateView):
     model = Notes
-    fields = '__all__'
+    form_class = NotesForm
     template_name = 'accounting/notes_create.html'
-    success_url = reverse_lazy('notes_list')
 
     def get_initial(self):
         initial = super().get_initial()
-        record_id = self.kwargs.get('record_id')
+        sportsperson_id = self.kwargs.get('sportsperson_id') or self.request.GET.get('sportsperson_id')
+        if sportsperson_id:
+            sportsperson = get_object_or_404(Sportsperson, pk=sportsperson_id)
+            initial['sportsperson'] = sportsperson
+        record_id = self.kwargs.get('record_id') or self.request.GET.get('record_id')
         if record_id:
-            initial['medical_record'] = record_id
+            medical_record = get_object_or_404(MedicalRecord, pk=record_id)
+            initial['medical_record'] = medical_record
+            initial['sportsperson'] = medical_record.sportsperson
         return initial
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        sportsperson_id = self.kwargs.get('sportsperson_id') or self.request.GET.get('sportsperson_id')
+        record_id = self.kwargs.get('record_id') or self.request.GET.get('record_id')
+        if sportsperson_id:
+            sportsperson = get_object_or_404(Sportsperson, pk=sportsperson_id)
+            kwargs['sportsperson'] = sportsperson
+        if record_id:
+            medical_record = get_object_or_404(MedicalRecord, pk=record_id)
+            kwargs['medical_record'] = medical_record
+        return kwargs
+
+    def form_valid(self, form):
+        note = form.save(commit=False)
+        if form.cleaned_data['medical_record']:
+            note.sportsperson = form.cleaned_data['medical_record'].sportsperson
+        note.save()
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        # Use NextUrlMixin to handle the 'next' parameter
+        next_url = super().get_success_url()
+        if next_url:
+            if 'medicalrecord' in next_url:
+                return next_url  # Redirect to MedicalRecord detail if 'next' points there
+            elif 'sportsperson' in next_url:
+                return next_url  # Redirect to Sportsperson detail if 'next' points there
+        # Default redirect to the associated MedicalRecord detail page
+        return reverse_lazy('medicalrecord_detail', kwargs={'pk': self.object.medical_record.pk})
 
 @method_decorator(role_required(['admin', 'editor']), name='dispatch')
 class NotesCreateGlobalView(CreateView):
     model = Notes
     fields = '__all__'
     template_name = 'accounting/notes_form.html'
-    success_url = reverse_lazy('notes_list')
+
+    def get_success_url(self):
+        # Redirect to the associated MedicalRecord detail page
+        return reverse_lazy('medicalrecord_detail', kwargs={'pk': self.object.medical_record.pk})
 
 
 @method_decorator(role_required(['admin']), name='dispatch')
 class NotesUpdateView(UpdateView):
     model = Notes
-    fields = '__all__'
+    form_class = NotesForm
     template_name = 'accounting/notes_form.html'
-    success_url = reverse_lazy('notes_list')
+
+    def get_success_url(self):
+        # Check for 'next' parameter
+        next_url = self.request.GET.get('next') or self.request.POST.get('next')
+        if next_url:
+            if 'medicalrecord' in next_url:
+                return next_url  # Redirect to MedicalRecord detail if 'next' points there
+            elif 'sportsperson' in next_url:
+                return next_url  # Redirect to Sportsperson detail if 'next' points there
+        # Default redirect to the associated MedicalRecord detail page
+        return reverse_lazy('medicalrecord_detail', kwargs={'pk': self.object.medical_record.pk})
 
 
 @method_decorator(role_required(['admin']), name='dispatch')
 class NotesDeleteView(DeleteView):
     model = Notes
     template_name = 'accounting/notes_confirm_delete.html'
-    success_url = reverse_lazy('notes_list')
+
+    def get_success_url(self):
+        # Store the medical_record.pk before deletion
+        medical_record_pk = self.object.medical_record.pk
+        # Check for 'next' parameter
+        next_url = self.request.GET.get('next') or self.request.POST.get('next')
+        if next_url:
+            if 'medicalrecord' in next_url:
+                return next_url  # Redirect to MedicalRecord detail if 'next' points there
+            elif 'sportsperson' in next_url:
+                return next_url  # Redirect to Sportsperson detail if 'next' points there
+        # Default redirect to the associated MedicalRecord detail page
+        return reverse_lazy('medicalrecord_detail', kwargs={'pk': medical_record_pk})

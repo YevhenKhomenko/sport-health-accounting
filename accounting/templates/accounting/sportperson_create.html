@@ -33,7 +33,13 @@
       <div class="card-body">
         {% for field in form %}
           <div class="mb-3">
-            <label class="form-label"><strong>{{ field.label }}:</strong></label>
+            {% if field.name == "trainers" %}
+              <label class="form-label"><strong>Тренер:</strong></label>
+            {% elif field.name == "organizations" %}
+              <label class="form-label"><strong>Організація:</strong></label>
+            {% else %}
+              <label class="form-label"><strong>{{ field.label }}:</strong></label>
+            {% endif %}
             {% if field.name == "trainers" or field.name == "organizations" %}
               {{ field }}
             {% else %}

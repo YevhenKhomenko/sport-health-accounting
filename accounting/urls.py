@@ -26,6 +26,10 @@ urlpatterns = [
     path('sportsperson/add/', views.SportspersonCreateView.as_view(), name='sportsperson_add'),
     path('sportsperson/<int:pk>/edit/', views.SportspersonUpdateView.as_view(), name='sportsperson_edit'),
     path('sportsperson/<int:pk>/delete/', views.SportspersonDeleteView.as_view(), name='sportsperson_delete'),
+    path('sportsperson/<int:sportsperson_pk>/add-trainer/', views.SportspersonAddTrainerView.as_view(), name='sportsperson_add_trainer'),
+    path('sportsperson/<int:sportsperson_pk>/remove-trainer/<int:trainer_pk>/', views.SportspersonRemoveTrainerView.as_view(), name='sportsperson_remove_trainer'),
+    path('sportsperson/<int:sportsperson_pk>/add-organization/', views.SportspersonAddOrganizationView.as_view(), name='sportsperson_add_organization'),
+    path('sportsperson/<int:sportsperson_pk>/remove-organization/<int:organization_pk>/', views.SportspersonRemoveOrganizationView.as_view(), name='sportsperson_remove_organization'),
 
     # Trainer (тренери)
     path('trainer/', views.TrainerListView.as_view(), name='trainer_list'),
@@ -54,14 +58,17 @@ urlpatterns = [
     # Anthropometry (антропометрія)
     path('anthropometry/', views.AnthropometryListView.as_view(), name='anthropometry_list'),
     path('anthropometry/add/', views.AnthropometryCreateView.as_view(), name='anthropometry_add'),
+    path('anthropometry/add/<int:sportsperson_id>/', views.AnthropometryCreateView.as_view(), name='anthropometry_add'),
     path('anthropometry/<int:pk>/', views.anthropometry_detail, name='anthropometry_detail'),
     path('anthropometry/<int:pk>/edit/', views.AnthropometryUpdateView.as_view(), name='anthropometry_edit'),
     path('anthropometry/<int:pk>/delete/', views.AnthropometryDeleteView.as_view(), name='anthropometry_delete'),
 
     # AdditionalTests (додаткові обстеження)
     path('additionaltests/', views.AdditionalTestsListView.as_view(), name='additionaltests_list'),
-    path('additionaltests/add_global/', views.AdditionalTestsCreateGlobalView.as_view(), name='additionaltests_add_global'),
-    path('additionaltests/add/<int:record_id>/', views.AdditionalTestsCreateView.as_view(), name='additionaltests_add'),
+    path('additionaltests/add_global/', views.AdditionalTestsCreateGlobalView.as_view(),
+         name='additionaltests_add_global'),
+    path('additionaltests/add/<int:sportsperson_id>/', views.AdditionalTestsCreateView.as_view(),
+         name='additionaltests_add'),
     path('additionaltests/<int:pk>/', views.additionaltests_detail, name='additionaltests_detail'),
     path('additionaltests/<int:pk>/edit/', views.AdditionalTestsUpdateView.as_view(), name='additionaltests_edit'),
     path('additionaltests/<int:pk>/delete/', views.AdditionalTestsDeleteView.as_view(), name='additionaltests_delete'),
@@ -69,7 +76,7 @@ urlpatterns = [
     # Notes (примітки)
     path('notes/', views.NotesListView.as_view(), name='notes_list'),
     path('notes/add_global/', views.NotesCreateGlobalView.as_view(), name='notes_add_global'),
-    path('notes/add/<int:record_id>/', views.NotesCreateView.as_view(), name='notes_add'),
+    path('notes/add/<int:sportsperson_id>/', views.NotesCreateView.as_view(), name='notes_add'),
     path('notes/<int:pk>/', views.note_detail, name='notes_detail'),
     path('notes/<int:pk>/edit/', views.NotesUpdateView.as_view(), name='notes_edit'),
     path('notes/<int:pk>/delete/', views.NotesDeleteView.as_view(), name='notes_delete'),

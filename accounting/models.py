@@ -91,8 +91,8 @@ class MedicalRecord(models.Model):
         Sportsperson,
         on_delete=models.CASCADE,
         related_name='medical_records',
-        null=True,  # Keep null=True for now
-        blank=True  # Add blank=True to allow empty values in forms
+        null=True,
+        blank=True
     )
     date_created = models.DateField("Дата створення карти")
     medical_facility = models.CharField("Медичний заклад", max_length=255)
@@ -110,6 +110,13 @@ class MedicalRecord(models.Model):
 
 class Anthropometry(models.Model):
     medical_record = models.ForeignKey(MedicalRecord, on_delete=models.CASCADE, related_name='anthropometries')
+    sportsperson = models.ForeignKey(
+        Sportsperson,
+        on_delete=models.CASCADE,
+        related_name='sportsperson_anthropometries',
+        null=True,  # Allow null initially for existing data
+        blank=True
+    )
     date_of_measurement = models.DateField("Дата вимірювання")
     weight = models.IntegerField("Вага (кг)")
     height = models.IntegerField("Зріст (см)")
@@ -127,6 +134,13 @@ class Anthropometry(models.Model):
 
 class AdditionalTests(models.Model):
     medical_record = models.ForeignKey(MedicalRecord, on_delete=models.CASCADE, related_name='additional_tests')
+    sportsperson = models.ForeignKey(
+        Sportsperson,
+        on_delete=models.CASCADE,
+        related_name='sportsperson_additional_tests',
+        null=True,  # Allow null initially for existing data
+        blank=True
+    )
     ecg = models.CharField("ЕКГ", max_length=255, blank=True, null=True)
     physical_test_results = models.CharField("Результати фізичних тестів", max_length=255, blank=True, null=True)
     rufier_index = models.CharField("Проба Руф’є", max_length=100, blank=True, null=True)
@@ -139,6 +153,13 @@ class AdditionalTests(models.Model):
 
 class Notes(models.Model):
     medical_record = models.ForeignKey(MedicalRecord, on_delete=models.CASCADE, related_name='notes')
+    sportsperson = models.ForeignKey(
+        Sportsperson,
+        on_delete=models.CASCADE,
+        related_name='sportsperson_notes',
+        null=True,  # Allow null initially for existing data
+        blank=True
+    )
     note = models.CharField("Примітка", max_length=500)
     note_file = models.FileField("Файл примітки", upload_to='notes_files/', blank=True, null=True)
 

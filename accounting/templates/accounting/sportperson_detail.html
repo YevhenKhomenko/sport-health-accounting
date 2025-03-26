@@ -65,6 +65,12 @@
             <td>{{ trainer.primary_sport }}</td>
             <td>
               <a href="{% url 'trainer_detail' trainer.pk %}" class="btn btn-info btn-sm">Переглянути</a>
+              {% if user.is_authenticated and user.userprofile.role in "admin editor" %}
+                <form method="post" action="{% url 'sportsperson_remove_trainer' sportsperson.pk trainer.pk %}" style="display:inline;">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Ви впевнені, що хочете видалити цього тренера зі списку спортсмена?')">Видалити</button>
+                </form>
+              {% endif %}
             </td>
           </tr>
           {% endfor %}
@@ -73,7 +79,28 @@
     {% else %}
       <p>Тренерів немає.</p>
     {% endif %}
-    <a href="{% url 'trainer_add' %}" class="btn btn-primary">Додати тренера</a>
+    {% if user.is_authenticated and user.userprofile.role in "admin editor" %}
+      <div class="mt-3">
+        <h5>Додати тренера</h5>
+        <form method="post" action="{% url 'sportsperson_add_trainer' sportsperson.pk %}">
+          {% csrf_token %}
+          <div class="row">
+            <div class="col-md-6">
+              <select name="trainer" class="select2 form-control" data-placeholder="Введіть ім’я або прізвище тренера..." required>
+                <option value="">Оберіть тренера...</option>
+                {% for trainer in all_trainers %}
+                  <option value="{{ trainer.pk }}">{{ trainer.last_name }} {{ trainer.first_name }} {{ trainer.patronymic }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-3">
+              <button type="submit" class="btn btn-success">Додати</button>
+            </div>
+          </div>
+        </form>
+        <a href="{% url 'trainer_add' %}" class="btn btn-primary mt-2">Створити нового тренера</a>
+      </div>
+    {% endif %}
   </div>
 
   <!-- Організації -->
@@ -85,7 +112,7 @@
           <tr>
             <th>Назва</th>
             <th>Тип</th>
-            <th>Адреса</th>
+            <NumberInputth>Адреса</th>
             <th>Телефон</th>
             <th>Email</th>
             <th>Дії</th>
@@ -101,6 +128,12 @@
             <td>{{ org.email }}</td>
             <td>
               <a href="{% url 'organization_detail' org.pk %}" class="btn btn-info btn-sm">Переглянути</a>
+              {% if user.is_authenticated and user.userprofile.role in "admin editor" %}
+                <form method="post" action="{% url 'sportsperson_remove_organization' sportsperson.pk org.pk %}" style="display:inline;">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Ви впевнені, що хочете видалити цю організацію зі списку спортсмена?')">Видалити</button>
+                </form>
+              {% endif %}
             </td>
           </tr>
           {% endfor %}
@@ -109,7 +142,28 @@
     {% else %}
       <p>Організацій немає.</p>
     {% endif %}
-    <a href="{% url 'organization_add' %}" class="btn btn-primary">Додати організацію</a>
+    {% if user.is_authenticated and user.userprofile.role in "admin editor" %}
+      <div class="mt-3">
+        <h5>Додати організацію</h5>
+        <form method="post" action="{% url 'sportsperson_add_organization' sportsperson.pk %}">
+          {% csrf_token %}
+          <div class="row">
+            <div class="col-md-6">
+              <select name="organization" class="select2 form-control" data-placeholder="Введіть назву організації..." required>
+                <option value="">Оберіть організацію...</option>
+                {% for org in all_organizations %}
+                  <option value="{{ org.pk }}">{{ org.organization_name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-3">
+              <button type="submit" class="btn btn-success">Додати</button>
+            </div>
+          </div>
+        </form>
+        <a href="{% url 'organization_add' %}" class="btn btn-primary mt-2">Створити нову організацію</a>
+      </div>
+    {% endif %}
   </div>
 
   <!-- Медичні записи -->
@@ -141,9 +195,6 @@
       <p>Медичних записів немає.</p>
     {% endif %}
     <a href="{% url 'medicalrecord_add' sportsperson.pk %}?next={{ request.path }}" class="btn btn-primary">Додати медичний запис</a>
-    {% if sportsperson %}
-      <a href="{% url 'medicalrecord_select_unassigned' %}?sportsperson_id={{ sportsperson.pk }}" class="btn btn-warning">Додати існуючий медичний запис</a>
-    {% endif %}
   </div>
 
   <!-- Антропометрія -->
@@ -189,7 +240,9 @@
     {% else %}
       <p>Антропометричних даних немає.</p>
     {% endif %}
-    <a href="{% url 'anthropometry_add' %}" class="btn btn-primary">Додати антропометрію</a>
+    {% if user.is_authenticated and user.userprofile.role in "admin editor" %}
+      <a href="{% url 'anthropometry_add' %}?sportsperson_id={{ sportsperson.pk }}&next={{ request.path }}" class="btn btn-primary">Додати антропометрію</a>
+    {% endif %}
   </div>
 
   <!-- Нотатки -->
@@ -225,7 +278,41 @@
     {% else %}
       <p>Нотаток немає.</p>
     {% endif %}
-    <a href="{% url 'notes_add' sportsperson.pk %}" class="btn btn-primary">Додати нотатку</a>
+    {% if user.is_authenticated and user.userprofile.role in "admin editor" %}
+      <a href="{% url 'notes_add' sportsperson.pk %}?next={{ request.path }}" class="btn btn-primary">Додати нотатку</a>
+    {% endif %}
+  </div>
+
+  <!-- Додаткові тести -->
+  <div class="mb-4">
+    <h4>Додаткові тести</h4>
+    {% if additional_tests %}
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>ЕКГ</th>
+            <th>Проба Руф’є</th>
+            <th>Дії</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for test in additional_tests %}
+            <tr>
+              <td>{{ test.ecg|default:"Не вказано" }}</td>
+              <td>{{ test.rufier_index|default:"Не вказано" }}</td>
+              <td>
+                <a href="{% url 'additionaltests_detail' test.pk %}" class="btn btn-info btn-sm">Переглянути</a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p>Додаткових тестів немає.</p>
+    {% endif %}
+    {% if user.is_authenticated and user.userprofile.role in "admin editor" %}
+      <a href="{% url 'additionaltests_add' sportsperson.pk %}?next={{ request.path }}" class="btn btn-primary">Додати додаткові тести</a>
+    {% endif %}
   </div>
 </div>
 {% endblock %}

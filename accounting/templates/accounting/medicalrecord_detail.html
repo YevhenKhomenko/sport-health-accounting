@@ -7,21 +7,156 @@
       <a href="{% url 'medicalrecord_edit' medicalrecord.pk %}" class="btn btn-primary">Редагувати</a>
     {% endif %}
   </div>
-  <div class="card">
+
+  <!-- Medical Record Details -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h4>Основні дані медичного запису</h4>
+    </div>
     <div class="card-body">
+      <p><strong>Спортсмен:</strong> {% if medicalrecord.sportsperson %}<a href="{% url 'sportsperson_detail' medicalrecord.sportsperson.pk %}">{{ medicalrecord.sportsperson }}</a>{% else %}Не вказано{% endif %}</p>
       <p><strong>Медичний заклад:</strong> {{ medicalrecord.medical_facility }}</p>
       <p><strong>Дата створення:</strong> {{ medicalrecord.date_created|date:"d.m.Y" }}</p>
       <p><strong>Стан здоров’я:</strong> {{ medicalrecord.health_status }}</p>
       <p><strong>Діагноз:</strong> {{ medicalrecord.diagnosis }}</p>
-      <p><strong>Функціональний статус:</strong> {{ medicalrecord.functional_status }}</p>
+      <p><strong>Функціональний статус:</strong> {{ medicalrecord.functional_status|default:"Не вказано" }}</p>
       <p><strong>Група занять:</strong> {{ medicalrecord.physical_activity_group }}</p>
       <p><strong>Допуск:</strong> {{ medicalrecord.admission_status }}</p>
-      <p><strong>Історія хвороб:</strong> {{ medicalrecord.medical_history }}</p>
+      <p><strong>Історія хвороб:</strong> {{ medicalrecord.medical_history|default:"Не вказано" }}</p>
       {% if medicalrecord.medical_document %}
-        <p><a href="{{ medicalrecord.medical_document.url }}" target="_blank">Переглянути документ</a></p>
+        <p><strong>Медичний документ:</strong> <a href="{{ medicalrecord.medical_document.url }}" target="_blank">Переглянути документ</a></p>
+      {% else %}
+        <p><strong>Медичний документ:</strong> Не завантажено</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Anthropometries Section -->
+  <div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h4>Антропометрія</h4>
+      {% if user.is_authenticated and user.userprofile.role in "admin editor" %}
+        <a href="{% url 'anthropometry_add' %}?sportsperson_id={{ medicalrecord.sportsperson.pk }}&record_id={{ medicalrecord.pk }}&next={% url 'medicalrecord_detail' medicalrecord.pk %}" class="btn btn-success btn-sm">Додати антропометрію</a>
+      {% endif %}
+    </div>
+    <div class="card-body">
+      {% if anthropometries %}
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Дата вимірювання</th>
+              <th>Вага (кг)</th>
+              <th>Зріст (см)</th>
+              <th>Дії</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for anthropometry in anthropometries %}
+              <tr>
+                <td>{{ anthropometry.date_of_measurement|date:"d.m.Y" }}</td>
+                <td>{{ anthropometry.weight }}</td>
+                <td>{{ anthropometry.height }}</td>
+                <td>
+                  <a href="{% url 'anthropometry_detail' anthropometry.pk %}" class="btn btn-info btn-sm">Деталі</a>
+                  {% if user.is_authenticated and user.userprofile.role == "admin" %}
+                    <a href="{% url 'anthropometry_edit' anthropometry.pk %}?next={% url 'medicalrecord_detail' medicalrecord.pk %}" class="btn btn-warning btn-sm">Редагувати</a>
+                    <a href="{% url 'anthropometry_delete' anthropometry.pk %}?next={% url 'medicalrecord_detail' medicalrecord.pk %}" class="btn btn-danger btn-sm">Видалити</a>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p>Антропометричних даних немає.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Additional Tests Section -->
+  <div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h4>Додаткові тести</h4>
+      {% if user.is_authenticated and user.userprofile.role in "admin editor" %}
+        <a href="{% url 'additionaltests_add' sportsperson_id=medicalrecord.sportsperson.pk %}?record_id={{ medicalrecord.pk }}&next={% url 'medicalrecord_detail' medicalrecord.pk %}" class="btn btn-success btn-sm">Додати тести</a>
+      {% endif %}
+    </div>
+    <div class="card-body">
+      {% if additional_tests %}
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>ЕКГ</th>
+              <th>Проба Руф’є</th>
+              <th>Дії</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for test in additional_tests %}
+              <tr>
+                <td>{{ test.ecg|default:"Не вказано" }}</td>
+                <td>{{ test.rufier_index|default:"Не вказано" }}</td>
+                <td>
+                  <a href="{% url 'additionaltests_detail' test.pk %}" class="btn btn-info btn-sm">Деталі</a>
+                  {% if user.is_authenticated and user.userprofile.role == "admin" %}
+                    <a href="{% url 'additionaltests_edit' test.pk %}?next={% url 'medicalrecord_detail' medicalrecord.pk %}" class="btn btn-warning btn-sm">Редагувати</a>
+                    <a href="{% url 'additionaltests_delete' test.pk %}?next={% url 'medicalrecord_detail' medicalrecord.pk %}" class="btn btn-danger btn-sm">Видалити</a>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p>Додаткових тестів немає.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Notes Section -->
+  <div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h4>Примітки</h4>
+      {% if user.is_authenticated and user.userprofile.role in "admin editor" %}
+        <a href="{% url 'notes_add' sportsperson_id=medicalrecord.sportsperson.pk %}?record_id={{ medicalrecord.pk }}&next={% url 'medicalrecord_detail' medicalrecord.pk %}" class="btn btn-success btn-sm">Додати примітку</a>
+      {% endif %}
+    </div>
+    <div class="card-body">
+      {% if notes %}
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Примітка</th>
+              <th>Файл</th>
+              <th>Дії</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for note in notes %}
+              <tr>
+                <td>{{ note.note }}</td>
+                <td>
+                  {% if note.note_file %}
+                    <a href="{{ note.note_file.url }}" target="_blank">Переглянути файл</a>
+                  {% else %}
+                    Не завантажено
+                  {% endif %}
+                </td>
+                <td>
+                  <a href="{% url 'notes_detail' note.pk %}" class="btn btn-info btn-sm">Деталі</a>
+                  {% if user.is_authenticated and user.userprofile.role == "admin" %}
+                    <a href="{% url 'notes_edit' note.pk %}?next={% url 'medicalrecord_detail' medicalrecord.pk %}" class="btn btn-warning btn-sm">Редагувати</a>
+                    <a href="{% url 'notes_delete' note.pk %}?next={% url 'medicalrecord_detail' medicalrecord.pk %}" class="btn btn-danger btn-sm">Видалити</a>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p>Приміток немає.</p>
       {% endif %}
     </div>
   </div>
 </div>
 {% endblock %}
-
