@@ -1,55 +1,98 @@
 {% extends "accounting/base.html" %}
 {% block content %}
 <div class="container my-4">
-  <h2>Список організацій</h2>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Список організацій</h2>
+    {% if user.is_authenticated and user.userprofile.role in "admin editor" %}
+      <a href="{% url 'organization_add' %}" class="btn btn-success">Додати організацію</a>
+    {% endif %}
+  </div>
 
-  <!-- Форма пошуку -->
-  <form method="get" class="mb-3">
-    <div class="row g-3">
-      <div class="col-md-8">
-        <input type="text" name="name" class="form-control" placeholder="Назва організації" value="{{ request.GET.name }}">
-      </div>
-      <div class="col-md-4">
-        <button type="submit" class="btn btn-primary">Пошук</button>
+  <!-- Search Form -->
+  <form method="get" class="mb-4">
+    <div class="row">
+      <div class="col-md-3 mb-3">
+        <label for="name">Назва</label>
+        <input type="text" name="name" id="name" class="form-control" value="{{ request.GET.name }}">
       </div>
     </div>
+    <button type="submit" class="btn btn-primary">Пошук</button>
+    <a href="{% url 'organization_list' %}" class="btn btn-secondary">Скинути</a>
   </form>
 
+  <!-- Organization List -->
   {% if organization_list %}
-  <table class="table table-striped">
-    <thead>
-      <tr>
-        <th>Назва</th>
-        <th>Тип</th>
-        <th>Адреса</th>
-        <th>Телефон</th>
-        <th>Email</th>
-        <th>Дії</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for org in organization_list %}
-      <tr>
-        <td>
-          <a href="{% url 'organization_detail' org.pk %}">
-            {{ org.organization_name }}
-          </a>
-        </td>
-        <td>{{ org.type }}</td>
-        <td>{{ org.address }}</td>
-        <td>{{ org.phone }}</td>
-        <td>{{ org.email }}</td>
-        <td>
-          <a href="{% url 'organization_edit' org.pk %}" class="btn btn-primary btn-sm">Редагувати</a>
-          <a href="{% url 'organization_delete' org.pk %}" class="btn btn-danger btn-sm">Видалити</a>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Назва організації</th>
+          <th>Тип</th>
+          <th>Адреса</th>
+          <th>Телефон</th>
+          <th>Email</th>
+          <th>Дії</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for organization in organization_list %}
+          <tr>
+            <td>{{ organization.organization_name }}</td>
+            <td>{{ organization.type }}</td>
+            <td>{{ organization.address }}</td>
+            <td>{{ organization.phone }}</td>
+            <td>{{ organization.email }}</td>
+            <td>
+              <a href="{% url 'organization_detail' organization.pk %}" class="btn btn-info btn-sm">Деталі</a>
+              {% if user.is_authenticated and user.userprofile.role == "admin" %}
+                <a href="{% url 'organization_edit' organization.pk %}" class="btn btn-warning btn-sm">Редагувати</a>
+                <a href="{% url 'organization_delete' organization.pk %}" class="btn btn-danger btn-sm">Видалити</a>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <!-- Pagination Controls -->
+    {% if page_obj.has_other_pages %}
+      <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+          {% if page_obj.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}">Попередня</a>
+            </li>
+          {% else %}
+            <li class="page-item disabled">
+              <span class="page-link">Попередня</span>
+            </li>
+          {% endif %}
+
+          {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+              <li class="page-item active">
+                <span class="page-link">{{ num }}</span>
+              </li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+              <li class="page-item">
+                <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}">{{ num }}</a>
+              </li>
+            {% endif %}
+          {% endfor %}
+
+          {% if page_obj.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}">Наступна</a>
+            </li>
+          {% else %}
+            <li class="page-item disabled">
+              <span class="page-link">Наступна</span>
+            </li>
+          {% endif %}
+        </ul>
+      </nav>
+    {% endif %}
   {% else %}
-    <p>Немає організацій.</p>
+    <p>Організацій не знайдено.</p>
   {% endif %}
 </div>
 {% endblock %}
-

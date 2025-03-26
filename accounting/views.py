@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from django.contrib import messages
 from django.urls import reverse_lazy
 from django.views import View
@@ -101,7 +102,16 @@ def sportsperson_list(request):
             queryset = queryset.filter(trainers__last_name__icontains=request.GET.get('trainer'))
         if form.cleaned_data.get('gender'):
             queryset = queryset.filter(gender=form.cleaned_data['gender'])
-    context = {'form': form, 'sportsperson_list': queryset.distinct()}
+
+    paginator = Paginator(queryset.distinct(), 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'form': form,
+        'sportsperson_list': page_obj,
+        'page_obj': page_obj,
+    }
     return render(request, 'accounting/sportperson_list.html', context)
 
 
@@ -283,6 +293,7 @@ class TrainerListView(ListView):
     model = Trainer
     template_name = 'accounting/trainer_list.html'
     context_object_name = 'trainer_list'
+    paginate_by = 10  # 10 items per page
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -335,6 +346,7 @@ class OrganizationListView(ListView):
     model = Organization
     template_name = 'accounting/organization_list.html'
     context_object_name = 'organization_list'
+    paginate_by = 10  # 10 items per page
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -384,6 +396,7 @@ class MedicalRecordListView(ListView):
     model = MedicalRecord
     template_name = 'accounting/medicalrecord_list.html'
     context_object_name = 'medicalrecord_list'
+    paginate_by = 10  # 10 items per page
 
 
 @method_decorator(role_required(['admin', 'editor']), name='dispatch')
@@ -457,6 +470,7 @@ class AnthropometryListView(ListView):
     model = Anthropometry
     template_name = 'accounting/anthropometry_list.html'
     context_object_name = 'anthropometry_list'
+    paginate_by = 10  # 10 items per page
 
 
 @method_decorator(role_required(['admin', 'editor']), name='dispatch')
@@ -551,6 +565,7 @@ class AdditionalTestsListView(ListView):
     model = AdditionalTests
     template_name = 'accounting/additionaltests_list.html'
     context_object_name = 'additionaltests_list'
+    paginate_by = 10  # 10 items per page
 
 
 @method_decorator(role_required(['admin', 'editor']), name='dispatch')
@@ -656,6 +671,7 @@ class NotesListView(ListView):
     model = Notes
     template_name = 'accounting/notes_list.html'
     context_object_name = 'notes_list'
+    paginate_by = 10  # 10 items per page
 
 
 @method_decorator(role_required(['admin', 'editor']), name='dispatch')

@@ -1,40 +1,94 @@
 {% extends "accounting/base.html" %}
 {% block content %}
 <div class="container my-4">
-  <h2>Список медичних записів</h2>
-  {% if sportsperson %}
-    <a href="{% url 'medicalrecord_add' sportsperson.pk %}" class="btn btn-success mb-3">Додати медичний запис</a>
-  {% endif %}
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Список медичних записів</h2>
+    {% if user.is_authenticated and user.userprofile.role in "admin editor" %}
+      <a href="{% url 'medicalrecord_add' %}" class="btn btn-success">Додати медичний запис</a>
+    {% endif %}
+  </div>
+
+  <!-- MedicalRecord List -->
   {% if medicalrecord_list %}
     <table class="table table-striped">
       <thead>
         <tr>
-          <th>Медичний заклад</th>
+          <th>Спортсмен</th>
           <th>Дата створення</th>
+          <th>Медичний заклад</th>
           <th>Стан здоров’я</th>
+          <th>Діагноз</th>
           <th>Допуск</th>
           <th>Дії</th>
         </tr>
       </thead>
       <tbody>
-        {% for record in medicalrecord_list %}
+        {% for medicalrecord in medicalrecord_list %}
           <tr>
-            <td><a href="{% url 'medicalrecord_detail' record.pk %}">{{ record.medical_facility }}</a></td>
-            <td>{{ record.date_created|date:"d.m.Y" }}</td>
-            <td>{{ record.health_status }}</td>
-            <td>{{ record.admission_status }}</td>
             <td>
-              <a href="{% url 'medicalrecord_detail' record.pk %}" class="btn btn-info btn-sm">Переглянути</a>
-              <a href="{% url 'medicalrecord_edit' record.pk %}" class="btn btn-primary btn-sm">Редагувати</a>
+              {% if medicalrecord.sportsperson %}
+                <a href="{% url 'sportsperson_detail' medicalrecord.sportsperson.pk %}">{{ medicalrecord.sportsperson }}</a>
+              {% else %}
+                Не вказано
+              {% endif %}
+            </td>
+            <td>{{ medicalrecord.date_created|date:"d.m.Y" }}</td>
+            <td>{{ medicalrecord.medical_facility }}</td>
+            <td>{{ medicalrecord.health_status }}</td>
+            <td>{{ medicalrecord.diagnosis }}</td>
+            <td>{{ medicalrecord.admission_status }}</td>
+            <td>
+              <a href="{% url 'medicalrecord_detail' medicalrecord.pk %}" class="btn btn-info btn-sm">Деталі</a>
+              {% if user.is_authenticated and user.userprofile.role == "admin" %}
+                <a href="{% url 'medicalrecord_edit' medicalrecord.pk %}" class="btn btn-warning btn-sm">Редагувати</a>
+                <a href="{% url 'medicalrecord_delete' medicalrecord.pk %}" class="btn btn-danger btn-sm">Видалити</a>
+              {% endif %}
             </td>
           </tr>
         {% endfor %}
       </tbody>
     </table>
+
+    <!-- Pagination Controls -->
+    {% if page_obj.has_other_pages %}
+      <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+          {% if page_obj.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Попередня</a>
+            </li>
+          {% else %}
+            <li class="page-item disabled">
+              <span class="page-link">Попередня</span>
+            </li>
+          {% endif %}
+
+          {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+              <li class="page-item active">
+                <span class="page-link">{{ num }}</span>
+              </li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+              </li>
+            {% endif %}
+          {% endfor %}
+
+          {% if page_obj.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.next_page_number }}">Наступна</a>
+            </li>
+          {% else %}
+            <li class="page-item disabled">
+              <span class="page-link">Наступна</span>
+            </li>
+          {% endif %}
+        </ul>
+      </nav>
+    {% endif %}
   {% else %}
-    <p>Медичних записів немає.</p>
+    <p>Медичних записів не знайдено.</p>
   {% endif %}
 </div>
 {% endblock %}
-
-

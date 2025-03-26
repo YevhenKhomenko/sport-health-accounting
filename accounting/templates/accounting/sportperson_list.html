@@ -1,112 +1,140 @@
-<!-- templates/accounting/sportsperson_list.html -->
-{% extends 'accounting/base.html' %}
+{% extends "accounting/base.html" %}
 {% block content %}
-<h2>Список спортсменів</h2>
-
-<!-- Форма фільтрації -->
-<form method="get" class="mb-4">
-  <div class="row g-3">
-    <!-- Прізвище -->
-    <div class="col-md-3">
-      <label for="last_name" class="form-label">Прізвище</label>
-      <input type="text" name="last_name" id="last_name" class="form-control" value="{{ request.GET.last_name }}">
-    </div>
-    <!-- Ім'я -->
-    <div class="col-md-3">
-      <label for="first_name" class="form-label">Ім'я</label>
-      <input type="text" name="first_name" id="first_name" class="form-control" value="{{ request.GET.first_name }}">
-    </div>
-    <!-- По батькові -->
-    <div class="col-md-3">
-      <label for="patronymic" class="form-label">По батькові</label>
-      <input type="text" name="patronymic" id="patronymic" class="form-control" value="{{ request.GET.patronymic }}">
-    </div>
-    <!-- Рік народження -->
-    <div class="col-md-3">
-      <label for="year_of_birth" class="form-label">Рік народження</label>
-      <input type="number" name="year_of_birth" id="year_of_birth" class="form-control" placeholder="Наприклад, 2000" value="{{ request.GET.year_of_birth }}">
-    </div>
-    <!-- Вид спорту -->
-    <div class="col-md-3">
-      <label for="primary_sport" class="form-label">Основний вид спорту</label>
-      <input type="text" name="primary_sport" id="primary_sport" class="form-control" value="{{ request.GET.primary_sport }}">
-    </div>
-    <!-- Організація (ДЮСШ) -->
-    <div class="col-md-3">
-      <label for="organization" class="form-label">Назва організації</label>
-      <input type="text" name="organization" id="organization" class="form-control" value="{{ request.GET.organization }}">
-    </div>
-    <!-- Прізвище тренера -->
-    <div class="col-md-3">
-      <label for="trainer" class="form-label">Прізвище тренера</label>
-      <input type="text" name="trainer" id="trainer" class="form-control" value="{{ request.GET.trainer }}">
-    </div>
-    <!-- Стать -->
-    <div class="col-md-3">
-      <label for="gender" class="form-label">Стать</label>
-      <select name="gender" id="gender" class="form-select">
-        <option value="">---------</option>
-        <option value="male" {% if request.GET.gender == "male" %}selected{% endif %}>Чоловіча</option>
-        <option value="female" {% if request.GET.gender == "female" %}selected{% endif %}>Жіноча</option>
-      </select>
-    </div>
+<div class="container my-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Список спортсменів</h2>
+    {% if user.is_authenticated and user.userprofile.role in "admin editor" %}
+      <a href="{% url 'sportsperson_add' %}" class="btn btn-success">Додати спортсмена</a>
+    {% endif %}
   </div>
-  <div class="mt-3">
-    <button type="submit" class="btn btn-primary">Шукати</button>
-    <a href="{% url 'sportsperson_list' %}" class="btn btn-secondary">Очистити фільтри</a>
-  </div>
-</form>
 
-<!-- Відображення списку спортсменів -->
-<table class="table table-striped">
-  <thead>
-    <tr>
-      <th>ПІБ</th>
-      <th>Дата народження</th>
-      <th>Організація</th>
-      <th>Тренер</th>
-      <th>Основний вид спорту</th>
-      <th>Дії</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for sp in sportsperson_list %}
-    <tr>
-      <td>
-        <a href="{% url 'sportsperson_detail' sp.pk %}">
-          {{ sp.last_name }} {{ sp.first_name }}{% if sp.patronymic %} {{ sp.patronymic }}{% endif %}
-        </a>
-      </td>
-      <td>{{ sp.date_of_birth }}</td>
-      <!-- Відображення організацій (через коми) -->
-      <td>
-        {% for org in sp.organizations.all %}
-          {{ org.organization_name }}{% if not forloop.last %}, {% endif %}
-        {% empty %}
-          -
+  <!-- Search Form -->
+  <div class="search-form-wrapper p-4 bg-light rounded shadow-sm">
+    <form method="get" class="mb-4">
+      <div class="row g-3">
+        <div class="col-md-3">
+          <label for="id_last_name" class="form-label">Прізвище спортсмена:</label>
+          {{ form.last_name }}
+        </div>
+        <div class="col-md-3">
+          <label for="id_first_name" class="form-label">Ім’я спортсмена:</label>
+          {{ form.first_name }}
+        </div>
+        <div class="col-md-3">
+          <label for="id_patronymic" class="form-label">По батькові спортсмена:</label>
+          {{ form.patronymic }}
+        </div>
+        <div class="col-md-3">
+          <label for="id_year_of_birth" class="form-label">Рік народження:</label>
+          {{ form.year_of_birth }}
+        </div>
+        <div class="col-md-3">
+          <label for="id_primary_sport" class="form-label">Вид спорту:</label>
+          {{ form.primary_sport }}
+        </div>
+        <div class="col-md-3">
+          <label for="id_organization" class="form-label">Організація:</label>
+          {{ form.organization }}
+        </div>
+        <div class="col-md-3">
+          <label for="id_trainer" class="form-label">Тренер (прізвище):</label>
+          {{ form.trainer }}
+        </div>
+        <div class="col-md-3">
+          <label for="id_gender" class="form-label">Стать спортсмена:</label>
+          {{ form.gender }}
+        </div>
+      </div>
+      <div class="mt-3 d-flex">
+        <button type="submit" class="btn btn-primary me-2">Пошук</button>
+        <a href="{% url 'sportsperson_list' %}" class="btn btn-secondary">Скинути</a>
+      </div>
+    </form>
+  </div>
+
+  <!-- Sportsperson List -->
+  {% if sportsperson_list %}
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Прізвище</th>
+          <th>Ім'я</th>
+          <th>По батькові</th>
+          <th>Дата народження</th>
+          <th>Стать</th>
+          <th>Основний вид спорту</th>
+          <th>Дії</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for sportsperson in sportsperson_list %}
+          <tr>
+            <td>{{ sportsperson.last_name }}</td>
+            <td>{{ sportsperson.first_name }}</td>
+            <td>{{ sportsperson.patronymic|default:"—" }}</td>
+            <td>{{ sportsperson.date_of_birth|date:"d.m.Y" }}</td>
+            <td>
+              {% if sportsperson.gender == "male" %}
+                Чоловік
+              {% elif sportsperson.gender == "female" %}
+                Жінка
+              {% else %}
+                {{ sportsperson.gender }}
+              {% endif %}
+            </td>
+            <td>{{ sportsperson.primary_sport }}</td>
+            <td>
+              <a href="{% url 'sportsperson_detail' sportsperson.pk %}" class="btn btn-info btn-sm">Деталі</a>
+              {% if user.is_authenticated and user.userprofile.role == "admin" %}
+                <a href="{% url 'sportsperson_edit' sportsperson.pk %}" class="btn btn-warning btn-sm">Редагувати</a>
+                <a href="{% url 'sportsperson_delete' sportsperson.pk %}" class="btn btn-danger btn-sm">Видалити</a>
+              {% endif %}
+            </td>
+          </tr>
         {% endfor %}
-      </td>
-      <!-- Відображення тренерів (прізвища, через коми) -->
-      <td>
-        {% for trainer in sp.trainers.all %}
-          {{ trainer.last_name }}{% if not forloop.last %}, {% endif %}
-        {% empty %}
-          -
-        {% endfor %}
-      </td>
-      <td>{{ sp.primary_sport }}</td>
-      <td>
-        {% if user.is_authenticated and user.userprofile.role == 'admin' %}
-          <a href="{% url 'sportsperson_edit' sp.pk %}" class="btn btn-primary btn-sm">Редагувати</a>
-          <a href="{% url 'sportsperson_delete' sp.pk %}" class="btn btn-danger btn-sm">Видалити</a>
-        {% endif %}
-      </td>
-    </tr>
-    {% empty %}
-    <tr>
-      <td colspan="6">Нічого не знайдено</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+      </tbody>
+    </table>
+
+    <!-- Pagination Controls -->
+    {% if page_obj.has_other_pages %}
+      <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+          {% if page_obj.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}">Попередня</a>
+            </li>
+          {% else %}
+            <li class="page-item disabled">
+              <span class="page-link">Попередня</span>
+            </li>
+          {% endif %}
+
+          {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+              <li class="page-item active">
+                <span class="page-link">{{ num }}</span>
+              </li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+              <li class="page-item">
+                <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}">{{ num }}</a>
+              </li>
+            {% endif %}
+          {% endfor %}
+
+          {% if page_obj.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}">Наступна</a>
+            </li>
+          {% else %}
+            <li class="page-item disabled">
+              <span class="page-link">Наступна</span>
+            </li>
+          {% endif %}
+        </ul>
+      </nav>
+    {% endif %}
+  {% else %}
+    <p>Спортсменів не знайдено.</p>
+  {% endif %}
+</div>
 {% endblock %}

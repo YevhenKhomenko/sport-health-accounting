@@ -1,39 +1,92 @@
-<!-- templates/accounting/additionaltests_list.html -->
-{% extends 'accounting/base.html' %}
+{% extends "accounting/base.html" %}
 {% block content %}
-<h2>Список додаткових тестів</h2>
+<div class="container my-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Список додаткових тестів</h2>
+    {% if user.is_authenticated and user.userprofile.role in "admin editor" %}
+      <a href="{% url 'additionaltests_add' %}" class="btn btn-success">Додати тести</a>
+    {% endif %}
+  </div>
 
-{% if user.is_authenticated and user.userprofile.role in 'admin editor' %}
-<a href="{% url 'additionaltests_add_global' %}" class="btn btn-success mb-3">Додати тест</a>
-{% endif %}
-
-<table class="table table-striped">
-    <thead>
+  <!-- AdditionalTests List -->
+  {% if additionaltests_list %}
+    <table class="table table-striped">
+      <thead>
         <tr>
-            <th>Медичний запис</th>
-            <th>ЕКГ</th>
-            <th>Проба Руф’є</th>
-            <th>Дії</th>
+          <th>Медична карта</th>
+          <th>Спортсмен</th>
+          <th>ЕКГ</th>
+          <th>Проба Руф’є</th>
+          <th>Дії</th>
         </tr>
-    </thead>
-    <tbody>
+      </thead>
+      <tbody>
         {% for test in additionaltests_list %}
-        <tr>
-            <td>{{ test.medical_record }}</td>
-            <td>{{ test.ecg }}</td>
-            <td>{{ test.rufier_index }}</td>
+          <tr>
             <td>
-                {% if user.is_authenticated and user.userprofile.role == 'admin' %}
-                    <a href="{% url 'additionaltests_edit' test.pk %}" class="btn btn-primary btn-sm">Редагувати</a>
-                    <a href="{% url 'additionaltests_delete' test.pk %}" class="btn btn-danger btn-sm">Видалити</a>
-                {% endif %}
+              <a href="{% url 'medicalrecord_detail' test.medical_record.pk %}">{{ test.medical_record }}</a>
             </td>
-        </tr>
-        {% empty %}
-        <tr>
-            <td colspan="4">Немає записів</td>
-        </tr>
+            <td>
+              {% if test.sportsperson %}
+                <a href="{% url 'sportsperson_detail' test.sportsperson.pk %}">{{ test.sportsperson }}</a>
+              {% else %}
+                Не вказано
+              {% endif %}
+            </td>
+            <td>{{ test.ecg|default:"Не вказано" }}</td>
+            <td>{{ test.rufier_index|default:"Не вказано" }}</td>
+            <td>
+              <a href="{% url 'additionaltests_detail' test.pk %}" class="btn btn-info btn-sm">Деталі</a>
+              {% if user.is_authenticated and user.userprofile.role == "admin" %}
+                <a href="{% url 'additionaltests_edit' test.pk %}" class="btn btn-warning btn-sm">Редагувати</a>
+                <a href="{% url 'additionaltests_delete' test.pk %}" class="btn btn-danger btn-sm">Видалити</a>
+              {% endif %}
+            </td>
+          </tr>
         {% endfor %}
-    </tbody>
-</table>
+      </tbody>
+    </table>
+
+    <!-- Pagination Controls -->
+    {% if page_obj.has_other_pages %}
+      <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+          {% if page_obj.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Попередня</a>
+            </li>
+          {% else %}
+            <li class="page-item disabled">
+              <span class="page-link">Попередня</span>
+            </li>
+          {% endif %}
+
+          {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+              <li class="page-item active">
+                <span class="page-link">{{ num }}</span>
+              </li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+              </li>
+            {% endif %}
+          {% endfor %}
+
+          {% if page_obj.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.next_page_number }}">Наступна</a>
+            </li>
+          {% else %}
+            <li class="page-item disabled">
+              <span class="page-link">Наступна</span>
+            </li>
+          {% endif %}
+        </ul>
+      </nav>
+    {% endif %}
+  {% else %}
+    <p>Додаткових тестів не знайдено.</p>
+  {% endif %}
+</div>
 {% endblock %}

@@ -17,10 +17,16 @@ class SportspersonSearchForm(forms.Form):
     primary_sport = forms.CharField(label="Вид спорту", required=False)
     organization = forms.CharField(label="Організація", required=False)
     trainer = forms.CharField(label="Тренер", required=False)
+    GENDER_CHOICES = [
+        ('', '---------'),
+        ('Чоловіча', 'Чоловіча'),
+        ('Жіноча', 'Жіноча'),
+    ]
     gender = forms.ChoiceField(
-        label="Стать спортсмена",
-        choices=[('', '---------'), ('male', 'Чоловіча'), ('female', 'Жіноча')],
-        required=False
+        label='Стать спортсмена',
+        choices=GENDER_CHOICES,
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-control'})
     )
 
 

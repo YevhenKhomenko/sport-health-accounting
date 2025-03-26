@@ -3,54 +3,106 @@
 <div class="container my-4">
   <h2>Список тренерів</h2>
 
-  <!-- Форма пошуку -->
-  <form method="get" class="mb-3">
-    <div class="row g-3">
-      <div class="col-md-4">
-        <input type="text" name="last_name" class="form-control" placeholder="Прізвище" value="{{ request.GET.last_name }}">
+  <!-- Add New Trainer Button -->
+  {% if user.is_authenticated and user.userprofile.role in "admin editor" %}
+    <div class="mb-3">
+      <a href="{% url 'trainer_add' %}" class="btn btn-success">Додати тренера</a>
+    </div>
+  {% endif %}
+
+  <!-- Search Form -->
+  <form method="get" class="mb-4">
+    <div class="row">
+      <div class="col-md-3 mb-3">
+        <label for="last_name" class="form-label">Прізвище:</label>
+        <input type="text" name="last_name" id="last_name" class="form-control" value="{{ request.GET.last_name }}">
       </div>
-      <div class="col-md-4">
-        <input type="text" name="first_name" class="form-control" placeholder="Ім'я" value="{{ request.GET.first_name }}">
+      <div class="col-md-3 mb-3">
+        <label for="first_name" class="form-label">Ім’я:</label>
+        <input type="text" name="first_name" id="first_name" class="form-control" value="{{ request.GET.first_name }}">
       </div>
-      <div class="col-md-4">
-        <button type="submit" class="btn btn-primary">Пошук</button>
-      </div>
+    </div>
+    <div class="d-flex">
+      <button type="submit" class="btn btn-primary me-2">Пошук</button>
+      <a href="{% url 'trainer_list' %}" class="btn btn-secondary">Скинути</a>
     </div>
   </form>
 
+  <!-- Trainer List -->
   {% if trainer_list %}
-  <table class="table table-striped">
-    <thead>
-      <tr>
-        <th>Прізвище</th>
-        <th>Ім'я</th>
-        <th>Дата народження</th>
-        <th>Основний вид спорту</th>
-        <th>Дії</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for trainer in trainer_list %}
-      <tr>
-        <td>
-          <a href="{% url 'trainer_detail' trainer.pk %}">
-            {{ trainer.last_name }}
-          </a>
-        </td>
-        <td>{{ trainer.first_name }}</td>
-        <td>{{ trainer.date_of_birth|date:"d.m.Y" }}</td>
-        <td>{{ trainer.primary_sport }}</td>
-        <td>
-          <a href="{% url 'trainer_edit' trainer.pk %}" class="btn btn-primary btn-sm">Редагувати</a>
-          <a href="{% url 'trainer_delete' trainer.pk %}" class="btn btn-danger btn-sm">Видалити</a>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Прізвище</th>
+          <th>Ім'я</th>
+          <th>По батькові</th>
+          <th>Дата народження</th>
+          <th>Стать</th>
+          <th>Основний вид спорту</th>
+          <th>Дії</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for trainer in trainer_list %}
+          <tr>
+            <td>{{ trainer.last_name }}</td>
+            <td>{{ trainer.first_name }}</td>
+            <td>{{ trainer.patronymic|default:"—" }}</td>
+            <td>{{ trainer.date_of_birth|date:"d.m.Y" }}</td>
+            <td>{{ trainer.gender }}</td>
+            <td>{{ trainer.primary_sport }}</td>
+            <td>
+              <a href="{% url 'trainer_detail' trainer.pk %}" class="btn btn-info btn-sm">Деталі</a>
+              {% if user.is_authenticated and user.userprofile.role == "admin" %}
+                <a href="{% url 'trainer_edit' trainer.pk %}" class="btn btn-warning btn-sm">Редагувати</a>
+                <a href="{% url 'trainer_delete' trainer.pk %}" class="btn btn-danger btn-sm">Видалити</a>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <!-- Pagination Controls -->
+    {% if page_obj.has_other_pages %}
+      <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+          {% if page_obj.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}">Попередня</a>
+            </li>
+          {% else %}
+            <li class="page-item disabled">
+              <span class="page-link">Попередня</span>
+            </li>
+          {% endif %}
+
+          {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+              <li class="page-item active">
+                <span class="page-link">{{ num }}</span>
+              </li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+              <li class="page-item">
+                <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}">{{ num }}</a>
+              </li>
+            {% endif %}
+          {% endfor %}
+
+          {% if page_obj.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}">Наступна</a>
+            </li>
+          {% else %}
+            <li class="page-item disabled">
+              <span class="page-link">Наступна</span>
+            </li>
+          {% endif %}
+        </ul>
+      </nav>
+    {% endif %}
   {% else %}
-    <p>Немає тренерів.</p>
+    <p>Тренерів не знайдено.</p>
   {% endif %}
 </div>
 {% endblock %}
-

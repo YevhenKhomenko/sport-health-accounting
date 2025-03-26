@@ -19,12 +19,15 @@ class Trainer(models.Model):
     first_name = models.CharField("Ім'я", max_length=100)
     patronymic = models.CharField("По батькові", max_length=100, blank=True, null=True)
     date_of_birth = models.DateField("Дата народження")
-    gender = models.CharField("Стать", max_length=10)
+    GENDER_CHOICES = (
+        ('Чоловік', 'Чоловік'),
+        ('Жінка', 'Жінка'),
+    )
+    gender = models.CharField("Стать", max_length=10, choices=GENDER_CHOICES)
     address = models.CharField("Домашня адреса", max_length=255)
     phone = models.CharField("Телефон", max_length=50)
     primary_sport = models.CharField("Основний вид спорту", max_length=100)
     additional_sports = models.CharField("Інші види спорту", max_length=255, blank=True, null=True)
-    # Додаємо необов’язкове поле для організації тренера
     organization = models.ForeignKey(
         Organization,
         on_delete=models.SET_NULL,
@@ -43,14 +46,17 @@ class Sportsperson(models.Model):
     first_name = models.CharField("Ім'я", max_length=100)
     patronymic = models.CharField("По батькові", max_length=100, blank=True, null=True)
     date_of_birth = models.DateField("Дата народження")
-    gender = models.CharField("Стать", max_length=10)
+    GENDER_CHOICES = (
+        ('Чоловік', 'Чоловік'),
+        ('Жінка', 'Жінка'),
+    )
+    gender = models.CharField("Стать", max_length=10, choices=GENDER_CHOICES)
     address = models.CharField("Домашня адреса", max_length=255)
     phone = models.CharField("Телефон", max_length=50)
     sports_category = models.CharField("Спортивний розряд", max_length=50)
     primary_sport = models.CharField("Основний вид спорту", max_length=100)
     additional_sports = models.CharField("Інші види спорту", max_length=255, blank=True, null=True)
 
-    # Видаляємо null=True, оскільки ManyToMany поля не потребують його
     trainers = models.ManyToManyField(
         Trainer,
         through='SportspersonTrainer',
