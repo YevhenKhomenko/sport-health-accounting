@@ -285,7 +285,7 @@ class SportspersonRemoveOrganizationView(View):
 class SportspersonDeleteView(DeleteView):
     model = Sportsperson
     template_name = 'accounting/sportperson_confirm_delete.html'
-    success_url = reverse_lazy('dashboard')
+    success_url = reverse_lazy('sportperson_list')
 
 
 # --- CRUD для Trainer ---

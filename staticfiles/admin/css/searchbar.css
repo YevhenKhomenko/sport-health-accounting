@@ -1,0 +1,60 @@
+/* accounting/static/css/styles.css */
+
+/* Ensure the search form looks polished */
+.search-form-wrapper {
+    border: 1px solid #e0e0e0;
+    background-color: #f8f9fa;
+}
+
+.search-form-wrapper .form-label {
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 0.25rem;
+}
+
+/* Reduce the gap between specific labels and their inputs */
+.search-form-wrapper label[for="id_primary_sport"],
+.search-form-wrapper label[for="id_organization"] {
+    margin-bottom: 0.1rem; /* Minimal gap between label and input */
+}
+
+.search-form-wrapper .form-control {
+    border-radius: 0.375rem;
+    border: 1px solid #ced4da;
+    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.search-form-wrapper .form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Ensure buttons are aligned and styled consistently */
+.search-form-wrapper .btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+    padding: 0.5rem 1.5rem;
+}
+
+.search-form-wrapper .btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    padding: 0.5rem 1.5rem;
+}
+
+.search-form-wrapper .btn-primary:hover,
+.search-form-wrapper .btn-secondary:hover {
+    opacity: 0.9;
+}
+
+/* Ensure the table looks clean */
+.table th,
+.table td {
+    vertical-align: middle;
+}
+
+/* Adjust the "Додати спортсмена" button */
+.btn-success {
+    padding: 0.5rem 1.5rem;
+    font-weight: 500;
+}

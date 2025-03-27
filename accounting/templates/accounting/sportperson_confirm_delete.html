@@ -8,7 +8,7 @@
 <form method="post">
     {% csrf_token %}
     <button type="submit" class="btn btn-danger">Так, видалити</button>
-    <a href="{% url 'sportsperson_detail' object.pk %}" class="btn btn-secondary">Скасувати</a>
+    <a href="{% url 'sportsperson_list' %}" class="btn btn-secondary">Скасувати</a>
 </form>
 {% else %}
 <p>У вас немає прав на видалення.</p>
