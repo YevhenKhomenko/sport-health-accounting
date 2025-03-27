@@ -79,8 +79,6 @@ def sportsperson_list(request):
     form = SportspersonSearchForm(request.GET or None)
     queryset = Sportsperson.objects.all()
 
-    year_of_birth = request.GET.get('year_of_birth')
-
     if form.is_valid():
         if form.cleaned_data.get('last_name'):
             queryset = queryset.filter(last_name__icontains=form.cleaned_data['last_name'])
@@ -88,18 +86,14 @@ def sportsperson_list(request):
             queryset = queryset.filter(first_name__icontains=form.cleaned_data['first_name'])
         if form.cleaned_data.get('patronymic'):
             queryset = queryset.filter(patronymic__icontains=form.cleaned_data['patronymic'])
-        if year_of_birth:
-            try:
-                year = int(year_of_birth)
-                queryset = queryset.filter(date_of_birth__year=year)
-            except ValueError:
-                pass
+        if form.cleaned_data.get('date_of_birth'):
+            queryset = queryset.filter(date_of_birth=form.cleaned_data['date_of_birth'])
         if form.cleaned_data.get('primary_sport'):
             queryset = queryset.filter(primary_sport__icontains=form.cleaned_data['primary_sport'])
-        if request.GET.get('organization'):
-            queryset = queryset.filter(organizations__organization_name__icontains=request.GET.get('organization'))
-        if request.GET.get('trainer'):
-            queryset = queryset.filter(trainers__last_name__icontains=request.GET.get('trainer'))
+        if form.cleaned_data.get('organization'):
+            queryset = queryset.filter(organizations__organization_name__icontains=form.cleaned_data['organization'])
+        if form.cleaned_data.get('trainer'):
+            queryset = queryset.filter(trainers__last_name__icontains=form.cleaned_data['trainer'])
         if form.cleaned_data.get('gender'):
             queryset = queryset.filter(gender=form.cleaned_data['gender'])
 

@@ -85,7 +85,6 @@
   {% else %}
     <p>Тренерів немає.</p>
   {% endif %}
-  <a href="{% url 'trainer_add' %}" class="btn btn-primary">Додати тренера</a>
 </div>
 
 <!-- Організації -->
@@ -121,7 +120,6 @@
   {% else %}
     <p>Організацій немає.</p>
   {% endif %}
-  <a href="{% url 'organization_add' %}" class="btn btn-primary">Додати організацію</a>
 </div>
 
 <!-- Медичні записи -->
@@ -151,9 +149,6 @@
     <p>Медичних записів немає.</p>
   {% endif %}
   <a href="{% url 'medicalrecord_add' sportsperson.pk %}?next={{ request.path }}" class="btn btn-primary">Додати медичний запис</a>
-  {% if sportsperson %}
-    <a href="{% url 'medicalrecord_select_unassigned' %}?sportsperson_id={{ sportsperson.pk }}" class="btn btn-warning">Додати існуючий медичний запис</a>
-  {% endif %}
 </div>
 
 <!-- Антропометрія -->
