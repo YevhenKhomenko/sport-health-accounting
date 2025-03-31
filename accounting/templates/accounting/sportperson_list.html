@@ -1,4 +1,6 @@
 {% extends "accounting/base.html" %}
+{% load widget_tweaks %}
+
 {% block content %}
 <div class="container my-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
@@ -43,11 +45,19 @@
           </div>
           <div class="col-md-3">
             <label for="organization" class="form-label">Назва організації</label>
-            <input type="text" name="organization" id="organization" class="form-control" placeholder="Введіть назву організації" value="{{ form.organization.value|default:'' }}">
+            {{ form.organization }}
           </div>
           <div class="col-md-3">
             <label for="trainer" class="form-label">Прізвище тренера</label>
-            <input type="text" name="trainer" id="trainer" class="form-control" placeholder="Введіть прізвище тренера" value="{{ form.trainer.value|default:'' }}">
+            {{ form.trainer }}
+          </div>
+        </div>
+
+        <!-- Третій рядок: стать -->
+        <div class="row g-3 mb-3">
+          <div class="col-md-3">
+            <label for="gender" class="form-label">Стать спортсмена</label>
+            {{ form.gender }}
           </div>
         </div>
 

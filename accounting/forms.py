@@ -15,8 +15,28 @@ class SportspersonSearchForm(forms.Form):
         widget=forms.DateInput(attrs={'type': 'date'})
     )
     primary_sport = forms.CharField(label="Вид спорту", required=False)
-    organization = forms.CharField(label="Організація", required=False)
-    trainer = forms.CharField(label="Тренер", required=False)
+    organization = forms.ModelChoiceField(
+        queryset=Organization.objects.all(),
+        label="Організація",
+        required=False,
+        widget=forms.Select(
+            attrs={
+                'class': 'select2',
+                'data-placeholder': 'Введіть назву організації...'
+            }
+        )
+    )
+    trainer = forms.ModelChoiceField(
+        queryset=Trainer.objects.all(),
+        label="Тренер",
+        required=False,
+        widget=forms.Select(
+            attrs={
+                'class': 'select2',
+                'data-placeholder': 'Введіть ім’я або прізвище тренера...'
+            }
+        )
+    )
     GENDER_CHOICES = [
         ('', '---------'),
         ('Чоловіча', 'Чоловіча'),
