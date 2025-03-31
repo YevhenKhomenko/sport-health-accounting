@@ -33,18 +33,69 @@
         <h4>Основні дані</h4>
       </div>
       <div class="card-body">
-        {% for field in form %}
-          <div class="mb-3 row">
-            <label for="{{ field.id_for_label }}" class="col-sm-3 col-form-label"><strong>{{ field.label }}:</strong></label>
-            <div class="col-sm-9">
-              {% if field.name == "sportsperson" %}
-                {{ field }}  <!-- Render sportsperson with Select2 -->
-              {% else %}
-                {{ field|add_class:"form-control" }}
-              {% endif %}
-            </div>
+        <!-- Explicitly render non-file fields -->
+        <div class="mb-3 row">
+          <label for="{{ form.sportsperson.id_for_label }}" class="col-sm-3 col-form-label"><strong>{{ form.sportsperson.label }}:</strong></label>
+          <div class="col-sm-9">
+            {{ form.sportsperson }}
           </div>
-        {% endfor %}
+        </div>
+        <div class="mb-3 row">
+          <label for="{{ form.date_created.id_for_label }}" class="col-sm-3 col-form-label"><strong>{{ form.date_created.label }}:</strong></label>
+          <div class="col-sm-9">
+            {{ form.date_created|add_class:"form-control" }}
+          </div>
+        </div>
+        <div class="mb-3 row">
+          <label for="{{ form.medical_facility.id_for_label }}" class="col-sm-3 col-form-label"><strong>{{ form.medical_facility.label }}:</strong></label>
+          <div class="col-sm-9">
+            {{ form.medical_facility|add_class:"form-control" }}
+          </div>
+        </div>
+        <div class="mb-3 row">
+          <label for="{{ form.health_status.id_for_label }}" class="col-sm-3 col-form-label"><strong>{{ form.health_status.label }}:</strong></label>
+          <div class="col-sm-9">
+            {{ form.health_status|add_class:"form-control" }}
+          </div>
+        </div>
+        <div class="mb-3 row">
+          <label for="{{ form.diagnosis.id_for_label }}" class="col-sm-3 col-form-label"><strong>{{ form.diagnosis.label }}:</strong></label>
+          <div class="col-sm-9">
+            {{ form.diagnosis|add_class:"form-control" }}
+          </div>
+        </div>
+        <div class="mb-3 row">
+          <label for="{{ form.functional_status.id_for_label }}" class="col-sm-3 col-form-label"><strong>{{ form.functional_status.label }}:</strong></label>
+          <div class="col-sm-9">
+            {{ form.functional_status|add_class:"form-control" }}
+          </div>
+        </div>
+        <div class="mb-3 row">
+          <label for="{{ form.physical_activity_group.id_for_label }}" class="col-sm-3 col-form-label"><strong>{{ form.physical_activity_group.label }}:</strong></label>
+          <div class="col-sm-9">
+            {{ form.physical_activity_group|add_class:"form-control" }}
+          </div>
+        </div>
+        <div class="mb-3 row">
+          <label for="{{ form.admission_status.id_for_label }}" class="col-sm-3 col-form-label"><strong>{{ form.admission_status.label }}:</strong></label>
+          <div class="col-sm-9">
+            {{ form.admission_status|add_class:"form-control" }}
+          </div>
+        </div>
+        <div class="mb-3 row">
+          <label for="{{ form.medical_history.id_for_label }}" class="col-sm-3 col-form-label"><strong>{{ form.medical_history.label }}:</strong></label>
+          <div class="col-sm-9">
+            {{ form.medical_history|add_class:"form-control" }}
+          </div>
+        </div>
+        <!-- Explicitly render the file field -->
+        <div class="mb-3 row">
+          <label for="{{ form.medical_document_upload.id_for_label }}" class="col-sm-3 col-form-label"><strong>{{ form.medical_document_upload.label }}:</strong></label>
+          <div class="col-sm-9">
+            {{ form.medical_document_upload }}
+            <small class="form-text text-muted">Оберіть файл для завантаження (опціонально)</small>
+          </div>
+        </div>
       </div>
     </div>
     <div class="text-end">

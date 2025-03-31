@@ -182,9 +182,19 @@ class OrganizationForm(forms.ModelForm):
 
 
 class MedicalRecordForm(forms.ModelForm):
+    medical_document_upload = forms.FileField(
+        required=False,
+        label='Медичний документ',
+        widget=forms.ClearableFileInput(attrs={'class': 'form-control'})
+    )
+
     class Meta:
         model = MedicalRecord
-        fields = '__all__'
+        fields = [
+            'sportsperson', 'date_created', 'medical_facility', 'health_status',
+            'diagnosis', 'functional_status', 'physical_activity_group',
+            'admission_status', 'medical_history'
+        ]
         labels = {
             'sportsperson': 'Спортсмен',
             'date_created': 'Дата створення карти',
@@ -195,13 +205,12 @@ class MedicalRecordForm(forms.ModelForm):
             'physical_activity_group': 'Група для занять',
             'admission_status': 'Допуск',
             'medical_history': 'Історія хвороб',
-            'medical_document': 'Медичний документ',
         }
         widgets = {
             'sportsperson': forms.Select(attrs={
                 'class': 'select2',
                 'data-placeholder': 'Оберіть спортсмена...'
-            }),  # Use Select with Select2 for search
+            }),
             'date_created': forms.DateInput(
                 format='%Y-%m-%d',
                 attrs={'type': 'date', 'class': 'form-control'}
@@ -213,18 +222,36 @@ class MedicalRecordForm(forms.ModelForm):
             'physical_activity_group': forms.TextInput(attrs={'class': 'form-control'}),
             'admission_status': forms.TextInput(attrs={'class': 'form-control'}),
             'medical_history': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'medical_document': forms.ClearableFileInput(attrs={'class': 'form-control'}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Ensure the sportsperson field is optional (since it's null=True in the model)
         self.fields['sportsperson'].required = False
-        # Update widget attributes for sportsperson
         self.fields['sportsperson'].widget.attrs.update({
             'class': 'select2',
             'data-placeholder': 'Оберіть спортсмена...'
         })
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        medical_document_file = self.cleaned_data.get('medical_document_upload')
+        if medical_document_file:
+            # Reset the file pointer to the beginning
+            medical_document_file.seek(0)
+            file_content = medical_document_file.read()
+            instance.medical_document = file_content
+            # Save the filename and MIME type
+            instance.medical_document_name = medical_document_file.name
+            instance.medical_document_mime_type = medical_document_file.content_type
+        elif self.cleaned_data.get('medical_document_upload') is None:
+            # If the file is cleared, set all related fields to None
+            instance.medical_document = None
+            instance.medical_document_name = None
+            instance.medical_document_mime_type = None
+
+        if commit:
+            instance.save()
+        return instance
 
 
 class AnthropometryForm(forms.ModelForm):
@@ -281,9 +308,18 @@ class AnthropometryForm(forms.ModelForm):
 
 
 class AdditionalTestsForm(forms.ModelForm):
+    ecg_file_upload = forms.FileField(
+        required=False,
+        label='Файл ЕКГ',
+        widget=forms.ClearableFileInput(attrs={'class': 'form-control'})
+    )
+
     class Meta:
         model = AdditionalTests
-        fields = '__all__'
+        fields = [
+            'medical_record', 'sportsperson', 'ecg', 'physical_test_results',
+            'rufier_index', 'specialist_conclusion'
+        ]
         labels = {
             'medical_record': 'Медична карта',
             'sportsperson': 'Спортсмен',
@@ -291,7 +327,6 @@ class AdditionalTestsForm(forms.ModelForm):
             'physical_test_results': 'Результати фізичних тестів',
             'rufier_index': 'Проба Руф’є',
             'specialist_conclusion': 'Висновки спеціалістів',
-            'ecg_file': 'Файл ЕКГ',
         }
         widgets = {
             'medical_record': forms.Select(attrs={'class': 'form-select'}),
@@ -300,7 +335,6 @@ class AdditionalTestsForm(forms.ModelForm):
             'physical_test_results': forms.TextInput(attrs={'class': 'form-control'}),
             'rufier_index': forms.TextInput(attrs={'class': 'form-control'}),
             'specialist_conclusion': forms.TextInput(attrs={'class': 'form-control'}),
-            'ecg_file': forms.ClearableFileInput(attrs={'class': 'form-control'}),
         }
 
     def __init__(self, *args, sportsperson=None, medical_record=None, **kwargs):
@@ -308,33 +342,52 @@ class AdditionalTestsForm(forms.ModelForm):
         self.fields['medical_record'].required = True
         self.fields['sportsperson'].required = False
         self.fields['sportsperson'].widget.attrs['readonly'] = True
-        # Predefine and make medical_record read-only if provided
         if medical_record:
             self.fields['medical_record'].queryset = MedicalRecord.objects.filter(pk=medical_record.pk)
             self.fields['medical_record'].initial = medical_record
             self.fields['medical_record'].widget.attrs['readonly'] = True
-        # Filter medical records by sportsperson if provided
         if sportsperson:
             self.fields['medical_record'].queryset = MedicalRecord.objects.filter(sportsperson=sportsperson)
             self.fields['sportsperson'].queryset = Sportsperson.objects.filter(pk=sportsperson.pk)
             self.fields['sportsperson'].initial = sportsperson
 
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        ecg_file = self.cleaned_data.get('ecg_file_upload')
+        if ecg_file:
+            ecg_file.seek(0)
+            instance.ecg_file = ecg_file.read()
+            instance.ecg_file_name = ecg_file.name
+            instance.ecg_file_mime_type = ecg_file.content_type
+        elif self.cleaned_data.get('ecg_file_upload') is None:
+            instance.ecg_file = None
+            instance.ecg_file_name = None
+            instance.ecg_file_mime_type = None
+
+        if commit:
+            instance.save()
+        return instance
+
 
 class NotesForm(forms.ModelForm):
+    note_file_upload = forms.FileField(
+        required=False,
+        label='Файл примітки',
+        widget=forms.ClearableFileInput(attrs={'class': 'form-control'})
+    )
+
     class Meta:
         model = Notes
-        fields = '__all__'
+        fields = ['medical_record', 'sportsperson', 'note']
         labels = {
             'medical_record': 'Медична карта',
             'sportsperson': 'Спортсмен',
             'note': 'Примітка',
-            'note_file': 'Файл примітки',
         }
         widgets = {
             'medical_record': forms.Select(attrs={'class': 'form-select'}),
             'sportsperson': forms.Select(attrs={'class': 'form-select'}),
             'note': forms.TextInput(attrs={'class': 'form-control'}),
-            'note_file': forms.ClearableFileInput(attrs={'class': 'form-control'}),
         }
 
     def __init__(self, *args, sportsperson=None, medical_record=None, **kwargs):
@@ -342,16 +395,33 @@ class NotesForm(forms.ModelForm):
         self.fields['medical_record'].required = True
         self.fields['sportsperson'].required = False
         self.fields['sportsperson'].widget.attrs['readonly'] = True
-        # Predefine and make medical_record read-only if provided
         if medical_record:
             self.fields['medical_record'].queryset = MedicalRecord.objects.filter(pk=medical_record.pk)
             self.fields['medical_record'].initial = medical_record
             self.fields['medical_record'].widget.attrs['readonly'] = True
-        # Filter medical records by sportsperson if provided
         if sportsperson:
             self.fields['medical_record'].queryset = MedicalRecord.objects.filter(sportsperson=sportsperson)
             self.fields['sportsperson'].queryset = Sportsperson.objects.filter(pk=sportsperson.pk)
             self.fields['sportsperson'].initial = sportsperson
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        note_file = self.cleaned_data.get('note_file_upload')
+        if note_file:
+            note_file.seek(0)
+            instance.note_file = note_file.read()
+            instance.note_file_name = note_file.name
+            instance.note_file_mime_type = note_file.content_type
+        elif self.cleaned_data.get('note_file_upload') is None:
+            instance.note_file = None
+            instance.note_file_name = None
+            instance.note_file_mime_type = None
+
+        if commit:
+            instance.save()
+        return instance
+
+
 class RegistrationForm(UserCreationForm):
     email = forms.EmailField(required=True, widget=forms.EmailInput(attrs={'class': 'form-control'}))
 

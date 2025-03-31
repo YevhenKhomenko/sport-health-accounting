@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.contrib import messages
+from django.http import StreamingHttpResponse, HttpResponse
 from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import CreateView, UpdateView, DeleteView, ListView
@@ -13,6 +14,36 @@ from .models import (
 from .forms import SportspersonSearchForm, SportspersonForm, TrainerForm, OrganizationForm, AnthropometryForm, \
     AdditionalTestsForm, MedicalRecordForm, RegistrationForm, NotesForm
 from .permissions import role_required
+
+
+def serve_binary_file(request, model_name, pk):
+    # Determine the model and field based on the model_name
+    if model_name == 'medicalrecord':
+        instance = get_object_or_404(MedicalRecord, pk=pk)
+        binary_data = instance.medical_document
+        file_name = instance.medical_document_name or f"medical_document_{pk}"
+        mime_type = instance.medical_document_mime_type or 'application/octet-stream'
+    elif model_name == 'additionaltests':
+        instance = get_object_or_404(AdditionalTests, pk=pk)
+        binary_data = instance.ecg_file
+        file_name = instance.ecg_file_name or f"ecg_file_{pk}"
+        mime_type = instance.ecg_file_mime_type or 'application/octet-stream'
+    elif model_name == 'notes':
+        instance = get_object_or_404(Notes, pk=pk)
+        binary_data = instance.note_file
+        file_name = instance.note_file_name or f"note_file_{pk}"
+        mime_type = instance.note_file_mime_type or 'application/octet-stream'
+    else:
+        return HttpResponse(status=404)
+
+    if not binary_data:
+        return HttpResponse(status=404)
+
+    # Create the response with the correct headers
+    response = HttpResponse(binary_data, content_type=mime_type)
+    response['Content-Disposition'] = f'attachment; filename="{file_name}"'
+    response['Content-Length'] = len(binary_data)
+    return response
 
 
 class NextUrlMixin:
@@ -117,7 +148,6 @@ def sportsperson_detail(request, pk):
     organizations = sportsperson.organizations.all()
     medical_records = sportsperson.medical_records.all().order_by('-date_created')
     # Для антропометрії, нотаток та додаткових тестів – через медичні записи
-    from accounting.models import Anthropometry, Notes, Trainer, Organization, AdditionalTests
     anthropometries = Anthropometry.objects.filter(medical_record__sportsperson=sportsperson).order_by('-date_of_measurement')
     notes = Notes.objects.filter(medical_record__sportsperson=sportsperson).order_by('-id')
     additional_tests = AdditionalTests.objects.filter(medical_record__sportsperson=sportsperson)
@@ -227,7 +257,6 @@ class SportspersonUpdateView(UpdateView):
         context['trainers'] = self.object.trainers.all()
         context['organizations'] = self.object.organizations.all()
         context['medical_records'] = self.object.medical_records.all().order_by('-date_created')
-        from accounting.models import Anthropometry, Notes
         context['anthropometries'] = Anthropometry.objects.filter(medical_record__sportsperson=self.object).order_by('-date_of_measurement')
         context['notes'] = Notes.objects.filter(medical_record__sportsperson=self.object)
         return context
@@ -373,7 +402,6 @@ class OrganizationUpdateView(UpdateView):
         context = super().get_context_data(**kwargs)
         context['organization'] = self.object
         # Отримуємо спортсменів, пов'язаних з цією організацією
-        from accounting.models import Sportsperson
         context['sportspersons'] = Sportsperson.objects.filter(organizations=self.object)
         return context
 
@@ -399,6 +427,14 @@ class MedicalRecordCreateGlobalView(CreateView):
     form_class = MedicalRecordForm
     template_name = 'accounting/medicalrecord_create.html'
 
+    def form_valid(self, form):
+        medical_record = form.save(commit=False)
+        if 'medical_document' in self.request.FILES:
+            medical_record.medical_document = self.request.FILES['medical_document'].read()
+        medical_record.save()
+        return super().form_valid(form)
+
+
     def get_success_url(self):
         return reverse_lazy('medicalrecord_detail', kwargs={'pk': self.object.pk})
 
@@ -409,8 +445,21 @@ class MedicalRecordCreateView(NextUrlMixin, CreateView):
     form_class = MedicalRecordForm
     template_name = 'accounting/medicalrecord_create.html'
 
-    def get_success_url(self):
-        return reverse_lazy('medicalrecord_detail', kwargs={'pk': self.object.pk})
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        print("Form fields in view:", list(form.fields.keys()))
+        return form
+
+    def form_valid(self, form):
+        print("Form is valid, saving...")
+        instance = form.save()
+        print("Saved instance:", instance)
+        print("Medical document after save:", instance.medical_document)
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        print("Form is invalid, errors:", form.errors)
+        return super().form_invalid(form)
 
     def get_initial(self):
         initial = super().get_initial()
@@ -419,12 +468,22 @@ class MedicalRecordCreateView(NextUrlMixin, CreateView):
             initial['sportsperson'] = sportsperson_id
         return initial
 
+    def get_success_url(self):
+        return reverse_lazy('medicalrecord_detail', kwargs={'pk': self.object.pk})
+
 
 @method_decorator(role_required(['admin']), name='dispatch')
 class MedicalRecordUpdateView(UpdateView):
     model = MedicalRecord
     form_class = MedicalRecordForm
     template_name = 'accounting/medicalrecord_form.html'
+
+    def form_valid(self, form):
+        medical_record = form.save(commit=False)
+        if 'medical_document' in self.request.FILES:
+            medical_record.medical_document = self.request.FILES['medical_document'].read()
+        medical_record.save()
+        return super().form_valid(form)
 
     def get_success_url(self):
         return reverse_lazy('medicalrecord_detail', kwargs={'pk': self.object.pk})
@@ -561,7 +620,6 @@ class AdditionalTestsListView(ListView):
     context_object_name = 'additionaltests_list'
     paginate_by = 10  # 10 items per page
 
-
 @method_decorator(role_required(['admin', 'editor']), name='dispatch')
 class AdditionalTestsCreateView(NextUrlMixin, CreateView):
     model = AdditionalTests
@@ -595,6 +653,8 @@ class AdditionalTestsCreateView(NextUrlMixin, CreateView):
 
     def form_valid(self, form):
         additional_test = form.save(commit=False)
+        if 'ecg_file' in self.request.FILES:
+            additional_test.ecg_file = self.request.FILES['ecg_file'].read()
         if form.cleaned_data['medical_record']:
             additional_test.sportsperson = form.cleaned_data['medical_record'].sportsperson
         additional_test.save()
@@ -618,6 +678,13 @@ class AdditionalTestsCreateGlobalView(CreateView):
     fields = '__all__'
     template_name = 'accounting/additionaltests_form.html'
 
+    def form_valid(self, form):
+        additional_test = form.save(commit=False)
+        if 'ecg_file' in self.request.FILES:
+            additional_test.ecg_file = self.request.FILES['ecg_file'].read()
+        additional_test.save()
+        return super().form_valid(form)
+
     def get_success_url(self):
         # Redirect to the associated MedicalRecord detail page
         return reverse_lazy('medicalrecord_detail', kwargs={'pk': self.object.medical_record.pk})
@@ -628,6 +695,13 @@ class AdditionalTestsUpdateView(UpdateView):
     model = AdditionalTests
     form_class = AdditionalTestsForm
     template_name = 'accounting/additionaltests_form.html'
+
+    def form_valid(self, form):
+        additional_test = form.save(commit=False)
+        if 'ecg_file' in self.request.FILES:
+            additional_test.ecg_file = self.request.FILES['ecg_file'].read()
+        additional_test.save()
+        return super().form_valid(form)
 
     def get_success_url(self):
         # Check for 'next' parameter
@@ -701,6 +775,8 @@ class NotesCreateView(NextUrlMixin, CreateView):
 
     def form_valid(self, form):
         note = form.save(commit=False)
+        if 'note_file' in self.request.FILES:
+            note.note_file = self.request.FILES['note_file'].read()
         if form.cleaned_data['medical_record']:
             note.sportsperson = form.cleaned_data['medical_record'].sportsperson
         note.save()
@@ -717,11 +793,19 @@ class NotesCreateView(NextUrlMixin, CreateView):
         # Default redirect to the associated MedicalRecord detail page
         return reverse_lazy('medicalrecord_detail', kwargs={'pk': self.object.medical_record.pk})
 
+
 @method_decorator(role_required(['admin', 'editor']), name='dispatch')
 class NotesCreateGlobalView(CreateView):
     model = Notes
     fields = '__all__'
     template_name = 'accounting/notes_form.html'
+
+    def form_valid(self, form):
+        note = form.save(commit=False)
+        if 'note_file' in self.request.FILES:
+            note.note_file = self.request.FILES['note_file'].read()
+        note.save()
+        return super().form_valid(form)
 
     def get_success_url(self):
         # Redirect to the associated MedicalRecord detail page
@@ -733,6 +817,13 @@ class NotesUpdateView(UpdateView):
     model = Notes
     form_class = NotesForm
     template_name = 'accounting/notes_form.html'
+
+    def form_valid(self, form):
+        note = form.save(commit=False)
+        if 'note_file' in self.request.FILES:
+            note.note_file = self.request.FILES['note_file'].read()
+        note.save()
+        return super().form_valid(form)
 
     def get_success_url(self):
         # Check for 'next' parameter

@@ -29,13 +29,29 @@
       </div>
       <div class="card-body">
         {% for field in form %}
-          <div class="mb-3 row">
-            <label for="{{ field.id_for_label }}" class="col-sm-3 col-form-label"><strong>{{ field.label }}:</strong></label>
-            <div class="col-sm-9">
-              {{ field|add_class:"form-control" }}
+          {% if field.name != 'medical_document_upload' %}
+            <div class="mb-3 row">
+              <label for="{{ field.id_for_label }}" class="col-sm-3 col-form-label"><strong>{{ field.label }}:</strong></label>
+              <div class="col-sm-9">
+                {{ field|add_class:"form-control" }}
+              </div>
             </div>
-          </div>
+          {% endif %}
         {% endfor %}
+        <!-- Explicitly render the file upload field -->
+        <div class="mb-3 row">
+          <label for="{{ form.medical_document_upload.id_for_label }}" class="col-sm-3 col-form-label"><strong>{{ form.medical_document_upload.label }}:</strong></label>
+          <div class="col-sm-9">
+            {{ form.medical_document_upload }}
+            <small class="form-text text-muted">Оберіть новий файл для заміни (опціонально)</small>
+            {% if form.instance.medical_document %}
+              <div class="mt-2">
+                <strong>Поточний документ:</strong>
+                <a href="{% url 'serve_binary_file' 'medicalrecord' form.instance.pk %}" class="btn btn-primary btn-sm">Завантажити</a>
+              </div>
+            {% endif %}
+          </div>
+        </div>
       </div>
     </div>
     <div class="text-end">

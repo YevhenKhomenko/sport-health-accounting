@@ -8,7 +8,7 @@ class Organization(models.Model):
     phone = models.CharField("Телефон", max_length=50)
     email = models.EmailField("Email")
     type = models.CharField("Тип організації", max_length=100)
-    organization_document = models.FileField("Документ організації", upload_to='organizations/', blank=True, null=True)
+    # organization_document = models.BinaryField("Документ організації", blank=True, null=True)
 
     def __str__(self):
         return self.organization_name
@@ -57,18 +57,8 @@ class Sportsperson(models.Model):
     primary_sport = models.CharField("Основний вид спорту", max_length=100)
     additional_sports = models.CharField("Інші види спорту", max_length=255, blank=True, null=True)
 
-    trainers = models.ManyToManyField(
-        Trainer,
-        through='SportspersonTrainer',
-        blank=True,
-        verbose_name="Тренери"
-    )
-    organizations = models.ManyToManyField(
-        Organization,
-        through='SportspersonOrganization',
-        blank=True,
-        verbose_name="Організації"
-    )
+    trainers = models.ManyToManyField(Trainer, through='SportspersonTrainer', blank=True, verbose_name="Тренери")
+    organizations = models.ManyToManyField(Organization, through='SportspersonOrganization', blank=True, verbose_name="Організації")
 
     def __str__(self):
         return f"{self.last_name} {self.first_name}"
@@ -108,7 +98,9 @@ class MedicalRecord(models.Model):
     physical_activity_group = models.CharField("Група для занять", max_length=100)
     admission_status = models.CharField("Допуск", max_length=50)
     medical_history = models.TextField("Історія хвороб", blank=True, null=True)
-    medical_document = models.FileField("Медичний документ", upload_to='medical_documents/', blank=True, null=True)
+    medical_document = models.BinaryField("Медичний документ", blank=True, null=True)
+    medical_document_name = models.CharField("Назва файлу медичного документа", max_length=255, blank=True, null=True)
+    medical_document_mime_type = models.CharField("MIME-тип медичного документа", max_length=100, blank=True, null=True)
 
     def __str__(self):
         return f"Медкарта {self.sportsperson} від {self.date_created}"
@@ -120,7 +112,7 @@ class Anthropometry(models.Model):
         Sportsperson,
         on_delete=models.CASCADE,
         related_name='sportsperson_anthropometries',
-        null=True,  # Allow null initially for existing data
+        null=True,
         blank=True
     )
     date_of_measurement = models.DateField("Дата вимірювання")
@@ -144,18 +136,19 @@ class AdditionalTests(models.Model):
         Sportsperson,
         on_delete=models.CASCADE,
         related_name='sportsperson_additional_tests',
-        null=True,  # Allow null initially for existing data
+        null=True,
         blank=True
     )
     ecg = models.CharField("ЕКГ", max_length=255, blank=True, null=True)
     physical_test_results = models.CharField("Результати фізичних тестів", max_length=255, blank=True, null=True)
     rufier_index = models.CharField("Проба Руф’є", max_length=100, blank=True, null=True)
     specialist_conclusion = models.CharField("Висновки спеціалістів", max_length=255, blank=True, null=True)
-    ecg_file = models.FileField("Файл ЕКГ", upload_to='ecg_files/', blank=True, null=True)
+    ecg_file = models.BinaryField("Файл ЕКГ", blank=True, null=True)
+    ecg_file_name = models.CharField("Назва файлу ЕКГ", max_length=255, blank=True, null=True)
+    ecg_file_mime_type = models.CharField("MIME-тип файлу ЕКГ", max_length=100, blank=True, null=True)
 
     def __str__(self):
         return f"Додаткові тести для {self.medical_record}"
-
 
 class Notes(models.Model):
     medical_record = models.ForeignKey(MedicalRecord, on_delete=models.CASCADE, related_name='notes')
@@ -163,15 +156,16 @@ class Notes(models.Model):
         Sportsperson,
         on_delete=models.CASCADE,
         related_name='sportsperson_notes',
-        null=True,  # Allow null initially for existing data
+        null=True,
         blank=True
     )
     note = models.CharField("Примітка", max_length=500)
-    note_file = models.FileField("Файл примітки", upload_to='notes_files/', blank=True, null=True)
+    note_file = models.BinaryField("Файл примітки", blank=True, null=True)
+    note_file_name = models.CharField("Назва файлу примітки", max_length=255, blank=True, null=True)
+    note_file_mime_type = models.CharField("MIME-тип файлу примітки", max_length=100, blank=True, null=True)
 
     def __str__(self):
         return f"Примітка для {self.medical_record}"
-
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -194,5 +188,3 @@ class LoginLog(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.timestamp}"
-
-    

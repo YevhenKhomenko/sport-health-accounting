@@ -176,12 +176,14 @@
         <div class="card-body">
           <p><strong>Стан здоров’я:</strong> {{ record.health_status }}</p>
           <p><strong>Діагноз:</strong> {{ record.diagnosis }}</p>
-          <p><strong>Функціональний статус:</strong> {{ record.functional_status }}</p>
+          <p><strong>Функціональний статус:</strong> {{ record.functional_status|default:"Не вказано" }}</p>
           <p><strong>Група занять:</strong> {{ record.physical_activity_group }}</p>
           <p><strong>Допуск:</strong> {{ record.admission_status }}</p>
-          <p><strong>Історія хвороб:</strong> {{ record.medical_history }}</p>
+          <p><strong>Історія хвороб:</strong> {{ record.medical_history|default:"Не вказано" }}</p>
           {% if record.medical_document %}
-            <p><a href="{{ record.medical_document.url }}" target="_blank">Переглянути документ</a></p>
+            <p><strong>Медичний документ:</strong> <a href="{% url 'serve_binary_file' 'medicalrecord' record.pk %}" class="btn btn-primary btn-sm">Завантажити</a></p>
+          {% else %}
+            <p><strong>Медичний документ:</strong> Не завантажено</p>
           {% endif %}
           <div class="text-end">
             <a href="{% url 'medicalrecord_detail' record.pk %}" class="btn btn-info btn-sm">Переглянути деталі</a>
@@ -252,6 +254,7 @@
           <tr>
             <th>Дата</th>
             <th>Примітка</th>
+            <th>Файл</th>
             <th>Дії</th>
           </tr>
         </thead>
@@ -266,6 +269,13 @@
               {% endif %}
             </td>
             <td>{{ note.note }}</td>
+            <td>
+              {% if note.note_file %}
+                <a href="{% url 'serve_binary_file' 'notes' note.pk %}" class="btn btn-primary btn-sm">Завантажити</a>
+              {% else %}
+                Не завантажено
+              {% endif %}
+            </td>
             <td>
               <a href="{% url 'notes_detail' note.pk %}" class="btn btn-info btn-sm">Переглянути</a>
             </td>
@@ -290,6 +300,7 @@
           <tr>
             <th>ЕКГ</th>
             <th>Проба Руф’є</th>
+            <th>Файл</th>
             <th>Дії</th>
           </tr>
         </thead>
@@ -298,6 +309,13 @@
             <tr>
               <td>{{ test.ecg|default:"Не вказано" }}</td>
               <td>{{ test.rufier_index|default:"Не вказано" }}</td>
+              <td>
+                {% if test.ecg_file %}
+                  <a href="{% url 'serve_binary_file' 'additionaltests' test.pk %}" class="btn btn-primary btn-sm">Завантажити</a>
+                {% else %}
+                  Не завантажено
+                {% endif %}
+              </td>
               <td>
                 <a href="{% url 'additionaltests_detail' test.pk %}" class="btn btn-info btn-sm">Переглянути</a>
               </td>
@@ -311,6 +329,10 @@
     {% if user.is_authenticated and user.userprofile.role in "admin editor" %}
       <a href="{% url 'additionaltests_add' sportsperson.pk %}?next={{ request.path }}" class="btn btn-primary">Додати додаткові тести</a>
     {% endif %}
+  </div>
+
+  <div class="mt-4">
+    <a href="{% url 'sportsperson_list' %}" class="btn btn-secondary">Повернутися до списку спортсменів</a>
   </div>
 </div>
 {% endblock %}

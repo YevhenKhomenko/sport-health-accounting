@@ -28,13 +28,20 @@
         {% for field in form %}
           <div class="mb-3">
             <label for="{{ field.id_for_label }}" class="form-label"><strong>{{ field.label }}:</strong></label>
-            {{ field|add_class:"form-control" }}
+            {% if field.name == "note_file" %}
+              {{ field|add_class:"form-control" }}
+              <small class="form-text text-muted">Оберіть файл для завантаження (опціонально)</small>
+            {% else %}
+              {{ field|add_class:"form-control" }}
+            {% endif %}
           </div>
         {% endfor %}
       </div>
     </div>
     <div class="text-end">
+      <input type="hidden" name="next" value="{{ request.GET.next|default:request.path }}">
       <button type="submit" class="btn btn-success">Створити примітку</button>
+      <a href="{{ request.GET.next|default:'/notes/' }}" class="btn btn-secondary">Скасувати</a>
     </div>
   </form>
   <div class="mt-4">

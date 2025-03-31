@@ -80,6 +80,9 @@ urlpatterns = [
     path('notes/<int:pk>/', views.note_detail, name='notes_detail'),
     path('notes/<int:pk>/edit/', views.NotesUpdateView.as_view(), name='notes_edit'),
     path('notes/<int:pk>/delete/', views.NotesDeleteView.as_view(), name='notes_delete'),
+
+    # Serve binary files (for downloading medical_document, ecg_file, note_file)
+    path('serve/<str:model_name>/<int:pk>/', views.serve_binary_file, name='serve_binary_file'),
 ]
 
 if settings.DEBUG:
