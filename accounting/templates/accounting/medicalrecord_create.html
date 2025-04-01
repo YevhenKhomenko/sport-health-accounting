@@ -7,8 +7,6 @@
     <h2>Додати медичний запис</h2>
     {% if object %}
       <a href="{% url 'medicalrecord_detail' object.pk %}" class="btn btn-secondary">Переглянути деталі</a>
-    {% else %}
-      <a href="{% url 'medicalrecord_list' %}" class="btn btn-secondary">Переглянути список медичних записів</a>
     {% endif %}
   </div>
   <hr>
