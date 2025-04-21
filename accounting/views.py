@@ -179,8 +179,11 @@ def organization_detail(request, pk):
 @login_required
 def trainer_detail(request, pk):
     trainer = get_object_or_404(Trainer, pk=pk)
-    sportspeople = Sportsperson.objects.filter(trainers=trainer)
-    context = {'trainer': trainer, 'sportspeople': sportspeople}
+    sportspeople = Sportsperson.objects.filter(trainers=trainer).prefetch_related('medical_records')
+    context = {
+        'trainer': trainer,
+        'sportspeople': sportspeople,
+    }
     return render(request, 'accounting/trainer_detail.html', context)
 
 

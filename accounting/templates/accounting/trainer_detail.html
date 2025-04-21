@@ -10,12 +10,6 @@
       <p><strong>Прізвище:</strong> {{ trainer.last_name }}</p>
       <p><strong>Ім'я:</strong> {{ trainer.first_name }}</p>
       <p><strong>По батькові:</strong> {{ trainer.patronymic }}</p>
-      <p><strong>Дата народження:</strong> {{ trainer.date_of_birth|date:"d.m.Y" }}</p>
-      <p>
-        <strong>Стать:</strong>
-        {% if trainer.gender == "male" %}Чоловіча{% elif trainer.gender == "female" %}Жіноча{% else %}{{ trainer.gender }}{% endif %}
-      </p>
-      <p><strong>Адреса:</strong> {{ trainer.address }}</p>
       <p><strong>Телефон:</strong> {{ trainer.phone }}</p>
       <p><strong>Основний вид спорту:</strong> {{ trainer.primary_sport }}</p>
       <p><strong>Інші види спорту:</strong> {{ trainer.additional_sports|default:"-" }}</p>
@@ -29,6 +23,8 @@
           <th>ПІБ</th>
           <th>Дата народження</th>
           <th>Основний вид спорту</th>
+          <th>Допуск</th>
+          <th>Дата останнього візиту до лікаря</th>
         </tr>
       </thead>
       <tbody>
@@ -41,6 +37,16 @@
           </td>
           <td>{{ sp.date_of_birth|date:"d.m.Y" }}</td>
           <td>{{ sp.primary_sport }}</td>
+          <td>
+            {% with latest_medical_record=sp.medical_records.first %}
+              {{ latest_medical_record.admission_status|default:"-" }}
+            {% endwith %}
+          </td>
+          <td>
+            {% with latest_medical_record=sp.medical_records.first %}
+              {{ latest_medical_record.date_created|date:"d.m.Y"|default:"-" }}
+            {% endwith %}
+          </td>
         </tr>
         {% endfor %}
       </tbody>

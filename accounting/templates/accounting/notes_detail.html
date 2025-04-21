@@ -3,9 +3,14 @@
 <div class="container my-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h2>Деталі примітки</h2>
-    {% if user.is_authenticated and user.userprofile.role in "admin editor" %}
-      <a href="{% url 'notes_edit' note.pk %}" class="btn btn-primary">Редагувати</a>
-    {% endif %}
+    <div>
+      {% if user.is_authenticated and user.userprofile.role in "admin editor" %}
+        <a href="{% url 'notes_edit' note.pk %}?next={% url 'medicalrecord_detail' note.medical_record.pk %}" class="btn btn-primary">Редагувати</a>
+      {% endif %}
+      {% if user.is_authenticated and user.userprofile.role == "admin" %}
+        <a href="{% url 'notes_delete' note.pk %}?next={% url 'medicalrecord_detail' note.medical_record.pk %}" class="btn btn-danger">Видалити</a>
+      {% endif %}
+    </div>
   </div>
   <div class="card mb-3">
     <div class="card-header">

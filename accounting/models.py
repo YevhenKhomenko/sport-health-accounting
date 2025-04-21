@@ -18,13 +18,7 @@ class Trainer(models.Model):
     last_name = models.CharField("Прізвище", max_length=100)
     first_name = models.CharField("Ім'я", max_length=100)
     patronymic = models.CharField("По батькові", max_length=100, blank=True, null=True)
-    date_of_birth = models.DateField("Дата народження")
-    GENDER_CHOICES = (
-        ('Чоловік', 'Чоловік'),
-        ('Жінка', 'Жінка'),
-    )
-    gender = models.CharField("Стать", max_length=10, choices=GENDER_CHOICES)
-    address = models.CharField("Домашня адреса", max_length=255)
+
     phone = models.CharField("Телефон", max_length=50)
     primary_sport = models.CharField("Основний вид спорту", max_length=100)
     additional_sports = models.CharField("Інші види спорту", max_length=255, blank=True, null=True)
@@ -116,15 +110,15 @@ class Anthropometry(models.Model):
         blank=True
     )
     date_of_measurement = models.DateField("Дата вимірювання")
-    weight = models.IntegerField("Вага (кг)")
-    height = models.IntegerField("Зріст (см)")
-    chest_circumference_inhale = models.IntegerField("Об’єм грудної клітки (вдих)")
-    chest_circumference_exhale = models.IntegerField("Об’єм грудної клітки (видих)")
-    chest_circumference_pause = models.IntegerField("Об’єм грудної клітки (пауза)")
-    chest_circumference_difference = models.IntegerField("Різниця об’ємів")
-    spirometry = models.IntegerField("Спірометрія")
-    dynamometry_right = models.IntegerField("Динамометрія (права рука)")
-    dynamometry_left = models.IntegerField("Динамометрія (ліва рука)")
+    weight = models.FloatField("Вага (кг)")
+    height = models.FloatField("Зріст (см)")
+    chest_circumference_inhale = models.FloatField("Об’єм грудної клітки (вдих)")
+    chest_circumference_exhale = models.FloatField("Об’єм грудної клітки (видих)")
+    chest_circumference_pause = models.FloatField("Об’єм грудної клітки (пауза)")
+    chest_circumference_difference = models.FloatField("Різниця об’ємів")
+    spirometry = models.FloatField("Спірометрія")
+    dynamometry_right = models.FloatField("Динамометрія (права рука)")
+    dynamometry_left = models.FloatField("Динамометрія (ліва рука)")
 
     def __str__(self):
         return f"Антропометрія {self.medical_record} від {self.date_of_measurement}"

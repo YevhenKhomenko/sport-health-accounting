@@ -3,9 +3,14 @@
 <div class="container my-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h2>Деталі медичного запису</h2>
-    {% if user.is_authenticated and user.userprofile.role in "admin editor" %}
-      <a href="{% url 'medicalrecord_edit' medicalrecord.pk %}" class="btn btn-primary">Редагувати</a>
-    {% endif %}
+    <div>
+      {% if user.is_authenticated and user.userprofile.role in "admin editor" %}
+        <a href="{% url 'medicalrecord_edit' medicalrecord.pk %}" class="btn btn-primary">Редагувати</a>
+      {% endif %}
+      {% if user.is_authenticated and user.userprofile.role == "admin" %}
+        <a href="{% url 'medicalrecord_delete' medicalrecord.pk %}?next={% url 'dashboard' %}" class="btn btn-danger">Видалити</a>
+      {% endif %}
+    </div>
   </div>
 
   <!-- Medical Record Details -->
