@@ -4,11 +4,10 @@ from django.contrib.auth.models import User
 
 class Organization(models.Model):
     organization_name = models.CharField("Назва організації", max_length=255)
-    address = models.CharField("Адреса", max_length=255)
-    phone = models.CharField("Телефон", max_length=50)
-    email = models.EmailField("Email")
-    type = models.CharField("Тип організації", max_length=100)
-    # organization_document = models.BinaryField("Документ організації", blank=True, null=True)
+    address = models.CharField("Адреса", max_length=255, blank=True)
+    phone = models.CharField("Телефон", max_length=50, blank=True)
+    email = models.EmailField("Email", blank=True)
+    type = models.CharField("Тип організації", max_length=100, blank=True)
 
     def __str__(self):
         return self.organization_name
@@ -16,10 +15,9 @@ class Organization(models.Model):
 
 class Trainer(models.Model):
     last_name = models.CharField("Прізвище", max_length=100)
-    first_name = models.CharField("Ім'я", max_length=100)
+    first_name = models.CharField("Ім'я", max_length=100, blank=True)
     patronymic = models.CharField("По батькові", max_length=100, blank=True, null=True)
-
-    phone = models.CharField("Телефон", max_length=50)
+    phone = models.CharField("Телефон", max_length=50, blank=True)
     primary_sport = models.CharField("Основний вид спорту", max_length=100)
     additional_sports = models.CharField("Інші види спорту", max_length=255, blank=True, null=True)
     organization = models.ForeignKey(
@@ -39,14 +37,14 @@ class Sportsperson(models.Model):
     last_name = models.CharField("Прізвище", max_length=100)
     first_name = models.CharField("Ім'я", max_length=100)
     patronymic = models.CharField("По батькові", max_length=100, blank=True, null=True)
-    date_of_birth = models.DateField("Дата народження")
+    date_of_birth = models.DateField("Дата народження", blank=True, null=True)
     GENDER_CHOICES = (
         ('Чоловік', 'Чоловік'),
         ('Жінка', 'Жінка'),
     )
     gender = models.CharField("Стать", max_length=10, choices=GENDER_CHOICES)
-    address = models.CharField("Домашня адреса", max_length=255)
-    phone = models.CharField("Телефон", max_length=50)
+    address = models.CharField("Домашня адреса", max_length=255, blank=True)
+    phone = models.CharField("Телефон", max_length=50, blank=True)
     sports_category = models.CharField("Спортивний розряд", max_length=50)
     primary_sport = models.CharField("Основний вид спорту", max_length=100)
     additional_sports = models.CharField("Інші види спорту", max_length=255, blank=True, null=True)
@@ -85,12 +83,12 @@ class MedicalRecord(models.Model):
         blank=True
     )
     date_created = models.DateField("Дата створення карти")
-    medical_facility = models.CharField("Медичний заклад", max_length=255)
-    health_status = models.CharField("Стан здоров’я", max_length=100)
-    diagnosis = models.CharField("Діагноз", max_length=255)
+    medical_facility = models.CharField("Медичний заклад", max_length=255, blank=True)
+    health_status = models.CharField("Стан здоров’я", max_length=100, blank=True)
+    diagnosis = models.CharField("Діагноз", max_length=255, blank=True)
     functional_status = models.CharField("Функціональний статус", max_length=100, blank=True, null=True)
-    physical_activity_group = models.CharField("Група для занять", max_length=100)
-    admission_status = models.CharField("Допуск", max_length=50)
+    physical_activity_group = models.CharField("Група для занять", max_length=100, blank=True)
+    admission_status = models.CharField("Допуск", max_length=50, blank=True)
     medical_history = models.TextField("Історія хвороб", blank=True, null=True)
     medical_document = models.BinaryField("Медичний документ", blank=True, null=True)
     medical_document_name = models.CharField("Назва файлу медичного документа", max_length=255, blank=True, null=True)
@@ -109,16 +107,16 @@ class Anthropometry(models.Model):
         null=True,
         blank=True
     )
-    date_of_measurement = models.DateField("Дата вимірювання")
-    weight = models.FloatField("Вага (кг)")
-    height = models.FloatField("Зріст (см)")
-    chest_circumference_inhale = models.FloatField("Об’єм грудної клітки (вдих)")
-    chest_circumference_exhale = models.FloatField("Об’єм грудної клітки (видих)")
-    chest_circumference_pause = models.FloatField("Об’єм грудної клітки (пауза)")
-    chest_circumference_difference = models.FloatField("Різниця об’ємів")
-    spirometry = models.FloatField("Спірометрія")
-    dynamometry_right = models.FloatField("Динамометрія (права рука)")
-    dynamometry_left = models.FloatField("Динамометрія (ліва рука)")
+    date_of_measurement = models.DateField("Дата вимірювання", blank=True, null=True)
+    weight = models.FloatField("Вага (кг)", blank=True, null=True)
+    height = models.FloatField("Зріст (см)", blank=True, null=True)
+    chest_circumference_inhale = models.FloatField("Об’єм грудної клітки (вдих)", blank=True, null=True)
+    chest_circumference_exhale = models.FloatField("Об’єм грудної клітки (видих)", blank=True, null=True)
+    chest_circumference_pause = models.FloatField("Об’єм грудної клітки (пауза)", blank=True, null=True)
+    chest_circumference_difference = models.FloatField("Різниця об’ємів", blank=True, null=True)
+    spirometry = models.FloatField("Спірометрія", blank=True, null=True)
+    dynamometry_right = models.FloatField("Динамометрія (права рука)", blank=True, null=True)
+    dynamometry_left = models.FloatField("Динамометрія (ліва рука)", blank=True, null=True)
 
     def __str__(self):
         return f"Антропометрія {self.medical_record} від {self.date_of_measurement}"

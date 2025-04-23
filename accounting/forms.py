@@ -39,8 +39,8 @@ class SportspersonSearchForm(forms.Form):
     )
     GENDER_CHOICES = [
         ('', '---------'),
-        ('Чоловіча', 'Чоловіча'),
-        ('Жіноча', 'Жіноча'),
+        ('Чоловік', 'Чоловік'),
+        ('Жінка', 'Жінка'),
     ]
     gender = forms.ChoiceField(
         label='Стать спортсмена',
@@ -57,7 +57,7 @@ class SportspersonForm(forms.ModelForm):
         widget=forms.SelectMultiple(
             attrs={
                 'class': 'select2',
-                'data-placeholder': 'Введіть ім’я або прізвище тренера...'  # Updated to Ukrainian
+                'data-placeholder': 'Введіть ім’я або прізвище тренера...'
             }
         )
     )
@@ -67,7 +67,7 @@ class SportspersonForm(forms.ModelForm):
         widget=forms.SelectMultiple(
             attrs={
                 'class': 'select2',
-                'data-placeholder': 'Введіть назву організації...'  # Updated to Ukrainian
+                'data-placeholder': 'Введіть назву організації...'
             }
         )
     )
@@ -85,10 +85,7 @@ class SportspersonForm(forms.ModelForm):
             'first_name': forms.TextInput(attrs={'class': 'form-control'}),
             'patronymic': forms.TextInput(attrs={'class': 'form-control'}),
             'date_of_birth': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}, format='%Y-%m-%d'),
-            'gender': forms.Select(attrs={'class': 'form-select'}, choices=(
-                ('male', 'Чоловіча'),
-                ('female', 'Жіноча'),
-            )),
+            'gender': forms.Select(attrs={'class': 'form-select'}),
             'address': forms.TextInput(attrs={'class': 'form-control'}),
             'phone': forms.TextInput(attrs={'class': 'form-control'}),
             'sports_category': forms.TextInput(attrs={'class': 'form-control'}),
@@ -112,6 +109,14 @@ class SportspersonForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Make fields optional to match the model
+        self.fields['patronymic'].required = False
+        self.fields['date_of_birth'].required = False
+        self.fields['address'].required = False
+        self.fields['phone'].required = False
+        self.fields['additional_sports'].required = False
+        # Update gender choices to match the model's GENDER_CHOICES
+        self.fields['gender'].choices = Sportsperson.GENDER_CHOICES
         # Ensure the placeholders are set correctly
         self.fields['trainers'].widget.attrs.update({
             'class': 'select2',
@@ -142,22 +147,20 @@ class SportspersonForm(forms.ModelForm):
 class TrainerForm(forms.ModelForm):
     class Meta:
         model = Trainer
-        exclude = ['sportspersons']
+        fields = [
+            'last_name', 'first_name', 'patronymic',
+            'phone', 'primary_sport', 'additional_sports',
+            'organization'
+        ]
         auto_id = "id_%s"
         widgets = {
             'last_name': forms.TextInput(attrs={'class': 'form-control'}),
             'first_name': forms.TextInput(attrs={'class': 'form-control'}),
             'patronymic': forms.TextInput(attrs={'class': 'form-control'}),
-            'date_of_birth': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}, format='%Y-%m-%d'),
-            'gender': forms.Select(attrs={'class': 'form-select'}, choices=(
-                ('male', 'Чоловіча'),
-                ('female', 'Жіноча'),
-            )),
-            'address': forms.TextInput(attrs={'class': 'form-control'}),
             'phone': forms.TextInput(attrs={'class': 'form-control'}),
             'primary_sport': forms.TextInput(attrs={'class': 'form-control'}),
             'additional_sports': forms.TextInput(attrs={'class': 'form-control'}),
-            'organization': forms.SelectMultiple(attrs={
+            'organization': forms.Select(attrs={
                 'class': 'select2',
                 'data-placeholder': 'Введіть назву організації...'
             }),
@@ -166,9 +169,6 @@ class TrainerForm(forms.ModelForm):
             'last_name': 'Прізвище',
             'first_name': 'Ім’я',
             'patronymic': 'По батькові',
-            'date_of_birth': 'Дата народження',
-            'gender': 'Стать',
-            'address': 'Домашня адреса',
             'phone': 'Телефон',
             'primary_sport': 'Основний вид спорту',
             'additional_sports': 'Інші види спорту',
@@ -177,7 +177,11 @@ class TrainerForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Ensure the organization field is optional
+        # Make fields optional to match the model
+        self.fields['first_name'].required = False
+        self.fields['patronymic'].required = False
+        self.fields['phone'].required = False
+        self.fields['additional_sports'].required = False
         self.fields['organization'].required = False
         # Update widget attributes for organization
         self.fields['organization'].widget.attrs.update({
@@ -189,7 +193,7 @@ class TrainerForm(forms.ModelForm):
 class OrganizationForm(forms.ModelForm):
     class Meta:
         model = Organization
-        exclude = ['sportspersons']
+        fields = ['organization_name', 'address', 'phone', 'email', 'type']
         auto_id = "id_%s"
         widgets = {
             'organization_name': forms.TextInput(attrs={'class': 'form-control'}),
@@ -197,8 +201,22 @@ class OrganizationForm(forms.ModelForm):
             'phone': forms.TextInput(attrs={'class': 'form-control'}),
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
             'type': forms.TextInput(attrs={'class': 'form-control'}),
-            'organization_document': forms.FileInput(attrs={'class': 'form-control'}),
         }
+        labels = {
+            'organization_name': 'Назва організації',
+            'address': 'Адреса',
+            'phone': 'Телефон',
+            'email': 'Email',
+            'type': 'Тип організації',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Make fields optional to match the model
+        self.fields['address'].required = False
+        self.fields['phone'].required = False
+        self.fields['email'].required = False
+        self.fields['type'].required = False
 
 
 class MedicalRecordForm(forms.ModelForm):
@@ -246,7 +264,16 @@ class MedicalRecordForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Make fields optional to match the model
         self.fields['sportsperson'].required = False
+        self.fields['medical_facility'].required = False
+        self.fields['health_status'].required = False
+        self.fields['diagnosis'].required = False
+        self.fields['functional_status'].required = False
+        self.fields['physical_activity_group'].required = False
+        self.fields['admission_status'].required = False
+        self.fields['medical_history'].required = False
+        # Ensure the sportsperson field widget attributes
         self.fields['sportsperson'].widget.attrs.update({
             'class': 'select2',
             'data-placeholder': 'Оберіть спортсмена...'
@@ -312,8 +339,20 @@ class AnthropometryForm(forms.ModelForm):
 
     def __init__(self, *args, sportsperson=None, medical_record=None, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['medical_record'].required = True
+        # Make fields optional to match the model
         self.fields['sportsperson'].required = False
+        self.fields['date_of_measurement'].required = False
+        self.fields['weight'].required = False
+        self.fields['height'].required = False
+        self.fields['chest_circumference_inhale'].required = False
+        self.fields['chest_circumference_exhale'].required = False
+        self.fields['chest_circumference_pause'].required = False
+        self.fields['chest_circumference_difference'].required = False
+        self.fields['spirometry'].required = False
+        self.fields['dynamometry_right'].required = False
+        self.fields['dynamometry_left'].required = False
+        # Keep medical_record required as per form logic
+        self.fields['medical_record'].required = True
         self.fields['sportsperson'].widget.attrs['readonly'] = True
         # Predefine and make medical_record read-only if provided
         if medical_record:
@@ -359,8 +398,14 @@ class AdditionalTestsForm(forms.ModelForm):
 
     def __init__(self, *args, sportsperson=None, medical_record=None, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['medical_record'].required = True
+        # Make fields optional to match the model
         self.fields['sportsperson'].required = False
+        self.fields['ecg'].required = False
+        self.fields['physical_test_results'].required = False
+        self.fields['rufier_index'].required = False
+        self.fields['specialist_conclusion'].required = False
+        # Keep medical_record required as per form logic
+        self.fields['medical_record'].required = True
         self.fields['sportsperson'].widget.attrs['readonly'] = True
         if medical_record:
             self.fields['medical_record'].queryset = MedicalRecord.objects.filter(pk=medical_record.pk)
@@ -412,8 +457,10 @@ class NotesForm(forms.ModelForm):
 
     def __init__(self, *args, sportsperson=None, medical_record=None, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['medical_record'].required = True
+        # Make fields optional to match the model
         self.fields['sportsperson'].required = False
+        # Keep medical_record required as per form logic
+        self.fields['medical_record'].required = True
         self.fields['sportsperson'].widget.attrs['readonly'] = True
         if medical_record:
             self.fields['medical_record'].queryset = MedicalRecord.objects.filter(pk=medical_record.pk)
