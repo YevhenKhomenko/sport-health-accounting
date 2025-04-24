@@ -2,71 +2,88 @@
 {% load widget_tweaks %}
 
 {% block content %}
-<h2>Панель керування</h2>
-<p>Ласкаво просимо до системи обліку спортсменів!</p>
+<div class="container my-4">
+  <h2>Панель керування</h2>
+  <p>Ласкаво просимо до системи обліку спортсменів!</p>
 
-<!-- Форма пошуку карт спортсмена (ЕКС) -->
-<div class="card mb-4">
-  <div class="card-header">
-    <h4>Пошук та фільтрація спортсменів</h4>
+  <!-- Форма пошуку карт спортсмена (ЕКС) -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h4>Пошук та фільтрація спортсменів</h4>
+    </div>
+    <div class="card-body">
+      <!-- Форма відправляється на сторінку списку спортсменів -->
+      <form method="get" action="{% url 'sportsperson_list' %}">
+        <div class="row">
+          <!-- П.І.Б. -->
+          <div class="col-md-4 mb-3">
+            <label for="last_name" class="form-label">Прізвище спортсмена</label>
+            <input type="text" name="last_name" id="last_name" class="form-control" placeholder="Введіть прізвище" value="{{ form.last_name.value|default:'' }}">
+          </div>
+          <div class="col-md-4 mb-3">
+            <label for="first_name" class="form-label">Ім’я спортсмена</label>
+            <input type="text" name="first_name" id="first_name" class="form-control" placeholder="Введіть ім’я" value="{{ form.first_name.value|default:'' }}">
+          </div>
+          <div class="col-md-4 mb-3">
+            <label for="patronymic" class="form-label">По батькові спортсмена</label>
+            <input type="text" name="patronymic" id="patronymic" class="form-control" placeholder="Введіть по батькові" value="{{ form.patronymic.value|default:'' }}">
+          </div>
+        </div>
+        <div class="row">
+          <!-- Дата народження -->
+          <div class="col-md-3 mb-3">
+            <label for="date_of_birth" class="form-label">Дата народження</label>
+            <input type="date" name="date_of_birth" id="date_of_birth" class="form-control" value="{{ form.date_of_birth.value|default:''|date:'Y-m-d' }}">
+          </div>
+          <!-- Вид спорту -->
+          <div class="col-md-3 mb-3">
+            <label for="primary_sport" class="form-label">Вид спорту</label>
+            <input type="text" name="primary_sport" id="primary_sport" class="form-control" placeholder="Введіть вид спорту" value="{{ form.primary_sport.value|default:'' }}">
+          </div>
+          <!-- Назва організації (ДЮСШ) -->
+          <div class="col-md-3 mb-3">
+            <label for="organization" class="form-label">Назва організації</label>
+            {{ form.organization }}
+          </div>
+          <!-- Прізвище тренера -->
+          <div class="col-md-3 mb-3">
+            <label for="trainer" class="form-label">Прізвище тренера</label>
+            {{ form.trainer }}
+          </div>
+        </div>
+        <div class="row">
+          <!-- Стать, дата останнього обстеження, допуск -->
+          <div class="col-md-3 mb-3">
+            <label for="gender" class="form-label">Стать спортсмена</label>
+            {{ form.gender }}
+          </div>
+          <div class="col-md-3 mb-3">
+            <label for="date_created" class="form-label">Дата останнього обстеження</label>
+            <input type="date" name="date_created" id="date_created" class="form-control" value="{{ form.date_created.value|default:''|date:'Y-m-d' }}">
+          </div>
+          <div class="col-md-3 mb-3">
+            <label for="admission_status" class="form-label">Допуск</label>
+            {{ form.admission_status }}
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Шукати</button>
+      </form>
+    </div>
   </div>
-  <div class="card-body">
-    <!-- Форма відправляється на сторінку списку спортсменів -->
-    <form method="get" action="{% url 'sportsperson_list' %}">
-      <div class="row">
-        <!-- П.І.Б. -->
-        <div class="col-md-4 mb-3">
-          <label for="last_name" class="form-label">Прізвище спортсмена</label>
-          <input type="text" name="last_name" id="last_name" class="form-control" placeholder="Введіть прізвище" value="{{ form.last_name.value|default:'' }}">
-        </div>
-        <div class="col-md-4 mb-3">
-          <label for="first_name" class="form-label">Ім’я спортсмена</label>
-          <input type="text" name="first_name" id="first_name" class="form-control" placeholder="Введіть ім’я" value="{{ form.first_name.value|default:'' }}">
-        </div>
-        <div class="col-md-4 mb-3">
-          <label for="patronymic" class="form-label">По батькові спортсмена</label>
-          <input type="text" name="patronymic" id="patronymic" class="form-control" placeholder="Введіть по батькові" value="{{ form.patronymic.value|default:'' }}">
-        </div>
-      </div>
-      <div class="row">
-        <!-- Дата народження -->
-        <div class="col-md-3 mb-3">
-          <label for="date_of_birth" class="form-label">Дата народження</label>
-          <input type="date" name="date_of_birth" id="date_of_birth" class="form-control" value="{{ form.date_of_birth.value|default:''|date:'Y-m-d' }}">
-        </div>
-        <!-- Вид спорту -->
-        <div class="col-md-3 mb-3">
-          <label for="primary_sport" class="form-label">Вид спорту</label>
-          <input type="text" name="primary_sport" id="primary_sport" class="form-control" placeholder="Введіть вид спорту" value="{{ form.primary_sport.value|default:'' }}">
-        </div>
-        <!-- Назва організації (ДЮСШ) -->
-        <div class="col-md-3 mb-3">
-          <label for="organization" class="form-label">Назва організації</label>
-          {{ form.organization }}
-        </div>
-        <!-- Прізвище тренера -->
-        <div class="col-md-3 mb-3">
-          <label for="trainer" class="form-label">Прізвище тренера</label>
-          {{ form.trainer }}
-        </div>
-      </div>
-      <button type="submit" class="btn btn-primary">Шукати</button>
-    </form>
+
+  <!-- Кнопки для додавання записів -->
+  <div class="mb-4">
+    <a href="{% url 'sportsperson_add' %}" class="btn btn-success">Додати спортсмена</a>
+    <a href="{% url 'trainer_add' %}" class="btn btn-success">Додати тренера</a>
+    <a href="{% url 'organization_add' %}" class="btn btn-success">Додати організацію</a>
+    <a href="{% url 'medicalrecord_add_global' %}?next={{ request.path }}" class="btn btn-success">Створити медичний запис</a>
   </div>
-</div>
 
-<!-- Кнопки для додавання записів -->
-<div class="mb-4">
-  <a href="{% url 'sportsperson_add' %}" class="btn btn-success">Додати спортсмена</a>
-  <a href="{% url 'trainer_add' %}" class="btn btn-success">Додати тренера</a>
-  <a href="{% url 'organization_add' %}" class="btn btn-success">Додати організацію</a>
-  <a href="{% url 'medicalrecord_add_global' %}?next={{ request.path }}" class="btn btn-success">Створити медичний запис</a>
-</div>
-
-<!-- Кнопки для перегляду списків -->
-<div class="mb-4">
-  <a href="{% url 'sportsperson_list' %}" class="btn btn-info">Список спортсменів</a>
-  <a href="{% url 'trainer_list' %}" class="btn btn-info">Список тренерів</a>
-  <a href="{% url 'organization_list' %}" class="btn btn-info">Список організацій</a>
+  <!-- Кнопки для перегляду списків -->
+  <div class="mb-4">
+    <a href="{% url 'sportsperson_list' %}" class="btn btn-info">Список спортсменів</a>
+    <a href="{% url 'trainer_list' %}" class="btn btn-info">Список тренерів</a>
+    <a href="{% url 'organization_list' %}" class="btn btn-info">Список організацій</a>
+  </div>
 </div>
 {% endblock %}

@@ -48,7 +48,29 @@ class SportspersonSearchForm(forms.Form):
         required=False,
         widget=forms.Select(attrs={'class': 'form-control'})
     )
+    date_created = forms.DateField(
+        label="Дата останнього обстеження",
+        required=False,
+        widget=forms.DateInput(attrs={'type': 'date'})
+    )
 
+    # Dynamically populate admission_status choices from MedicalRecord
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Get distinct admission_status values from MedicalRecord, excluding null/empty
+        admission_statuses = MedicalRecord.objects.filter(
+            admission_status__isnull=False
+        ).exclude(
+            admission_status=''
+        ).values_list('admission_status', flat=True).distinct()
+        # Create choices with an empty option as the default
+        ADMISSION_STATUS_CHOICES = [('', '---------')] + [(status, status) for status in admission_statuses]
+        self.fields['admission_status'] = forms.ChoiceField(
+            label='Допуск',
+            choices=ADMISSION_STATUS_CHOICES,
+            required=False,
+            widget=forms.Select(attrs={'class': 'form-control'})
+        )
 
 class SportspersonForm(forms.ModelForm):
     trainers = forms.ModelMultipleChoiceField(

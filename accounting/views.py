@@ -1,3 +1,4 @@
+from django.db.models import Prefetch
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
@@ -110,6 +111,15 @@ def sportsperson_list(request):
     form = SportspersonSearchForm(request.GET or None)
     queryset = Sportsperson.objects.all()
 
+    # Prefetch the most recent medical record for each sportsperson
+    queryset = queryset.prefetch_related(
+        Prefetch(
+            'medical_records',
+            queryset=MedicalRecord.objects.order_by('-date_created'),
+            to_attr='latest_medical_record'
+        )
+    )
+
     if form.is_valid():
         if form.cleaned_data.get('last_name'):
             queryset = queryset.filter(last_name__icontains=form.cleaned_data['last_name'])
@@ -127,6 +137,21 @@ def sportsperson_list(request):
             queryset = queryset.filter(trainers=form.cleaned_data['trainer'])
         if form.cleaned_data.get('gender'):
             queryset = queryset.filter(gender=form.cleaned_data['gender'])
+
+        if form.cleaned_data.get('date_created'):
+            matching_sportsperson_ids = [
+                sportsperson.id
+                for sportsperson in queryset
+                if sportsperson.latest_medical_record and sportsperson.latest_medical_record[0].date_created == form.cleaned_data['date_created']
+            ]
+            queryset = queryset.filter(id__in=matching_sportsperson_ids)
+        if form.cleaned_data.get('admission_status'):
+            matching_sportsperson_ids = [
+                sportsperson.id
+                for sportsperson in queryset
+                if sportsperson.latest_medical_record and sportsperson.latest_medical_record[0].admission_status and form.cleaned_data['admission_status'].lower() in sportsperson.latest_medical_record[0].admission_status.lower()
+            ]
+            queryset = queryset.filter(id__in=matching_sportsperson_ids)
 
     paginator = Paginator(queryset.distinct(), 10)
     page_number = request.GET.get('page')

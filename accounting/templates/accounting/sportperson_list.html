@@ -53,11 +53,19 @@
           </div>
         </div>
 
-        <!-- Третій рядок: стать -->
+        <!-- Третій рядок: стать, дата останнього обстеження, допуск -->
         <div class="row g-3 mb-3">
           <div class="col-md-3">
             <label for="gender" class="form-label">Стать спортсмена</label>
             {{ form.gender }}
+          </div>
+          <div class="col-md-3">
+            <label for="date_created" class="form-label">Дата останнього обстеження</label>
+            <input type="date" name="date_created" id="date_created" class="form-control" value="{{ form.date_created.value|default:''|date:'Y-m-d' }}">
+          </div>
+          <div class="col-md-3">
+            <label for="admission_status" class="form-label">Допуск</label>
+            {{ form.admission_status }}
           </div>
         </div>
 
@@ -83,6 +91,8 @@
           <th>Дата народження</th>
           <th>Стать</th>
           <th>Основний вид спорту</th>
+          <th>Дата останнього обстеження</th>
+          <th>Допуск</th>
           <th>Дії</th>
         </tr>
       </thead>
@@ -95,6 +105,20 @@
             <td>{{ sportsperson.date_of_birth|date:"d.m.Y" }}</td>
             <td>{{ sportsperson.gender }}</td>
             <td>{{ sportsperson.primary_sport }}</td>
+            <td>
+              {% if sportsperson.latest_medical_record %}
+                {{ sportsperson.latest_medical_record.0.date_created|date:"d.m.Y" }}
+              {% else %}
+                —
+              {% endif %}
+            </td>
+            <td>
+              {% if sportsperson.latest_medical_record %}
+                {{ sportsperson.latest_medical_record.0.admission_status|default:"—" }}
+              {% else %}
+                —
+              {% endif %}
+            </td>
             <td>
               <a href="{% url 'sportsperson_detail' sportsperson.pk %}" class="btn btn-info btn-sm">Деталі</a>
               {% if user.is_authenticated and user.userprofile.role == "admin" %}
