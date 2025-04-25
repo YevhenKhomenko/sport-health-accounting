@@ -1,12 +1,15 @@
+Setup Steps
 git clone <repository-url>
 cd sport_accounting/sport_accounting
+Generate SECRET_KEY:  
+bash
 
-Generate SECRET_KEY:
 python -c "import secrets; print(secrets.token_urlsafe(50))"
 
 nano .env
+.env:  
+plaintext
 
-.env:
 SECRET_KEY=your-secure-key-here
 DEBUG=False
 ALLOWED_HOSTS=localhost,127.0.0.1
@@ -15,9 +18,28 @@ DB_NAME=sport_accounting
 DB_USER=sport_user
 DB_PASSWORD=sport_password
 
+docker-compose build  
+bash
+
 docker-compose build
+
+docker-compose up -d  
+bash
+
 docker-compose up -d
+
+docker-compose exec web python manage.py migrate  
+bash
+
 docker-compose exec web python manage.py migrate
+
+docker-compose exec web python manage.py createsuperuser  
+bash
+
 docker-compose exec web python manage.py createsuperuser
 
+docker-compose down  
+bash
+
 docker-compose down
+
