@@ -6,12 +6,12 @@ from decouple import config
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = config('SECRET_KEY')
-DEBUG = config('DEBUG', default=True, cast=bool)  # DEBUG можна керувати через змінну середовища
+DEBUG = config('DEBUG', default=True, cast=bool)
 
-# ALLOWED_HOSTS: для продакшена потрібно вказати домен вашого додатка на Heroku, наприклад, 'your-app.herokuapp.com'
+
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost',
                          cast=lambda v: [s.strip() for s in v.split(',')])
-# Приклад: ALLOWED_HOSTS = ['your-app.herokuapp.com', '127.0.0.1']
+
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -29,7 +29,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # додано для обслуговування статичних файлів на Heroku
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
